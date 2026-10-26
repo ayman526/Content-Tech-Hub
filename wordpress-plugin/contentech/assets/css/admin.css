@@ -1,0 +1,46 @@
+/* Contentech WordPress Plugin — Admin Styles */
+
+/* List table column badges */
+.contentech-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.contentech-badge--delivered   { background: #00a32a22; color: #00a32a; border: 1px solid #00a32a44; }
+.contentech-badge--in-progress { background: #0091AE22; color: #0091AE; border: 1px solid #0091AE44; }
+.contentech-badge--stale       { background: #FF7A5922; color: #FF7A59; border: 1px solid #FF7A5944; }
+.contentech-badge--failed      { background: #d6363822; color: #d63638; border: 1px solid #d6363844; }
+.contentech-badge--missing     { background: #8c8f9422; color: #8c8f94; border: 1px solid #8c8f9444; }
+
+/* List table column header */
+.column-contentech { width: 180px; }
+
+/* Metabox */
+#contentech-metabox .contentech-lang-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+#contentech-send-btn {
+    margin-top: 8px;
+}
+
+#contentech-send-notice {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Filter dropdown in list table */
+.contentech-filter-wrap {
+    display: inline-block;
+    margin-left: 8px;
+}

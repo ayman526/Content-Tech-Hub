@@ -1,0 +1,335 @@
+Based on the current website structure and design system, add a new top-level main navigation item called:
+
+PRODUCT
+
+This new Product nav item must behave like the existing Services button:
+- desktop: mega dropdown
+- mobile: expandable accordion/dropdown inside mobile navigation
+- same design language, spacing, hover behavior, and premium enterprise styling as the current Services nav
+
+==================================================
+GOAL
+==================================================
+
+Create a Product section in the main menu that helps visitors understand how the platform works for 3 distinct user segments:
+
+1. Customer
+2. Agency
+3. Linguist
+
+Each segment must have:
+- one item inside the Product mega dropdown
+- its own dedicated page
+- page content tailored to that segment’s goals, workflows, and benefits
+- product-focused explanation, not service-focused copy
+
+The new Product section should feel native to the existing site and align with the current homepage messaging:
+- AI + human linguists + localization assets in one place
+- BYOK / BYOL / on-prem control
+- project workflows
+- enterprise-grade control
+- translation memory, glossary, review, and delivery workflows
+
+==================================================
+1. MAIN NAVIGATION UPDATE
+==================================================
+
+Add a new top nav item:
+- Product
+
+Recommended desktop nav order:
+- Product
+- Services
+- Pricing
+- About
+
+Make Product open a mega dropdown similar to Services.
+
+==================================================
+2. PRODUCT MEGA DROPDOWN STRUCTURE
+==================================================
+
+The Product mega dropdown should have 3 primary columns/cards/sections:
+
+A. Customer
+B. Agency
+C. Linguist
+
+Each dropdown item should include:
+- title
+- short 1-line description
+- optional small icon
+- CTA or arrow
+- link to its dedicated page
+
+Suggested dropdown microcopy:
+
+Customer
+For companies managing multilingual content with AI, internal teams, and trusted language assets in one platform.
+
+Agency
+For agencies serving multiple clients, managing separate workspaces, and combining AI, vendors, and localization assets at scale.
+
+Linguist
+For translators and reviewers working inside structured workflows with tasks, context, assets, and delivery tools.
+
+Also include a small supporting footer row inside the mega menu such as:
+- Compare workflows
+- Explore platform capabilities
+- See how each role uses Contentech
+
+==================================================
+3. PAGE REQUIREMENTS
+==================================================
+
+Create 3 dedicated pages:
+
+- /product/customer
+- /product/agency
+- /product/linguist
+
+Each page must:
+- match the same visual design system as the existing site
+- use the same premium SaaS tone
+- feel product-led, operational, and enterprise-ready
+- clearly explain how the platform works for that audience
+- include feature breakdowns, workflow explanation, benefits, and CTA sections
+
+Do not make these pages generic.
+Tailor each page to the real product behavior and role-specific use cases.
+
+==================================================
+4. CUSTOMER PAGE
+==================================================
+
+Page title idea:
+Product for Customers
+
+Hero goal:
+Explain how businesses use the platform to manage translation with AI, in-house linguists, external linguists, glossaries, translation memories, and review workflows in one place.
+
+Customer page should explain:
+- upload and create translation projects
+- choose source/target languages
+- choose AI-only, human-only, or AI + human review
+- use BYOK if desired
+- connect their own linguists
+- attach glossary / TM / style guide
+- manage approvals, delivery, and audit trail
+- keep data control with enterprise governance
+
+Suggested sections:
+1. Hero
+2. How it works
+3. Core customer capabilities
+4. AI + human workflow
+5. Localization assets in one place
+6. Data control / BYOK / compliance
+7. Typical use cases by industry
+8. CTA
+
+Suggested feature blocks:
+- Conversational order wizard
+- AI routing by language pair and domain
+- Glossary & translation memory
+- Bring your own API keys
+- Bring your own linguists
+- Review and approval workflow
+- Notifications and audit trail
+- Multi-format support including PDF, DOCX, XLIFF
+- Analytics and project visibility
+
+Suggested CTA:
+- Start Free
+- Contact Sales
+
+==================================================
+5. AGENCY PAGE
+==================================================
+
+Page title idea:
+Product for Agencies
+
+Hero goal:
+Explain how agencies can use the platform to manage multiple clients, separate workspaces, linguist networks, AI workflows, and localization assets from one central system.
+
+Agency page should explain:
+- agency-level dashboard
+- client workspaces / sub-accounts
+- separate assets and projects per client
+- internal PM team collaboration
+- external linguist/vendor management
+- white-label-ready or brand separation if supported
+- AI + human workflow management across multiple clients
+- client-specific glossaries / TMs / style guides
+- routing, review, approvals, and reporting by client
+
+Suggested sections:
+1. Hero
+2. Multi-client workspace model
+3. Agency operations workflow
+4. Client isolation and permissions
+5. Asset management by client
+6. AI + linguist orchestration at scale
+7. Reporting / delivery / audit visibility
+8. CTA
+
+Suggested feature blocks:
+- Client sub-workspaces
+- Separate project and asset isolation
+- Shared or dedicated linguist pools
+- PM and reviewer roles
+- Favorite linguist routing
+- Client-specific glossaries and TMs
+- Multi-client dashboards
+- Workflow transparency and audit trail
+- Scalable delivery operations
+- Enterprise-grade control for agency teams
+
+Suggested CTA:
+- Book a Demo
+- Contact Sales
+
+==================================================
+6. LINGUIST PAGE
+==================================================
+
+Page title idea:
+Product for Linguists
+
+Hero goal:
+Explain how linguists work inside the platform to receive tasks, review AI drafts, use reference assets, collaborate, deliver work, and maintain quality.
+
+Linguist page should explain:
+- linguist portal
+- task inbox
+- assignment / accept / decline
+- AI draft review
+- access to glossary / TM / style guide
+- comments / revision workflows
+- delivery submission
+- workload visibility
+- quality and audit history
+- working with customer teams or agencies inside one structured platform
+
+Suggested sections:
+1. Hero
+2. How linguists work in the platform
+3. Task lifecycle
+4. CAT/editor/review experience
+5. Access to context and assets
+6. Delivery and revision workflow
+7. Collaboration and audit trail
+8. CTA
+
+Suggested feature blocks:
+- Task dashboard
+- Accept / decline assignments
+- AI draft review
+- Shared TM & glossary access
+- Style guide and reference files
+- Revision handling
+- Delivery tracking
+- Role-based permissions
+- Centralized communication
+- Clear project context
+
+Suggested CTA:
+- Join as a Linguist
+- Access Linguist Portal
+
+==================================================
+7. CONTENT POSITIONING
+==================================================
+
+Important:
+These pages must describe the PRODUCT, not the service catalog.
+
+The tone should emphasize:
+- one platform
+- AI + human collaboration
+- operational control
+- multilingual workflow management
+- role-based usage
+- localization assets in one place
+- enterprise trust and governance
+
+Avoid making these pages sound like generic “services” pages.
+They should feel like real product experience pages for each audience.
+
+==================================================
+8. DESIGN REQUIREMENTS
+==================================================
+
+Reuse the current site style:
+- premium enterprise SaaS visual language
+- same typography hierarchy
+- same button styles
+- same spacing rhythm
+- same card style
+- same hover behavior
+- same menu interaction patterns as Services
+- same responsive behavior
+
+The Product dropdown should visually feel like it was planned from day one.
+
+==================================================
+9. INTERNAL LINKING
+==================================================
+
+Add internal links between:
+- Product pages
+- Pricing
+- Start Free
+- Contact Sales
+- Linguist Portal
+- relevant sections already on the homepage if useful
+
+Optionally add “Explore also” cards at the bottom of each product page linking to the other 2 segment pages.
+
+==================================================
+10. SEO / PAGE META
+==================================================
+
+Add page titles and meta descriptions for:
+- Product for Customers
+- Product for Agencies
+- Product for Linguists
+
+Ensure URLs are clean and indexable.
+
+==================================================
+11. MOBILE EXPERIENCE
+==================================================
+
+In mobile navigation:
+- Product should expand to reveal:
+  - Customer
+  - Agency
+  - Linguist
+
+Make sure this is fully responsive and matches the behavior of the rest of the mobile menu.
+
+==================================================
+12. QUALITY RULES
+==================================================
+
+Do not create empty placeholder pages.
+Do not create menu links without real content.
+Do not duplicate homepage copy word-for-word.
+Do not make the 3 pages too similar.
+Each page should clearly reflect the needs, workflows, and value proposition of that specific audience.
+
+==================================================
+13. FINAL CHECK
+==================================================
+
+After implementation:
+- verify Product appears in desktop and mobile nav
+- verify mega dropdown works correctly
+- verify all 3 pages exist and are linked
+- verify visual consistency with Services dropdown
+- verify copy is tailored by audience
+- verify all CTAs work correctly
+- verify no broken links
+- verify responsive behavior

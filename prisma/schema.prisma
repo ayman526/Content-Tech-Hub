@@ -1,0 +1,1545 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  password      String?
+  role          Role      @default(CLIENT)
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+
+  organizationId   String?
+  organization     Organization?  @relation(fields: [organizationId], references: [id])
+
+  linguistProfile  LinguistProfile?
+
+  clientProjects    Project[]        @relation("ClientProjects")
+  assignments       Job[]            @relation("LinguistJobs")
+  favoriteLinguists FavoriteLinguist[] @relation("ClientFavorites")
+  favoritedBy       FavoriteLinguist[] @relation("FavoritedLinguist")
+  apiConfigs        ApiConfiguration[]
+  notifications     Notification[]
+  segmentsAssigned  TranslationSegment[] @relation("AssignedLinguist")
+  segmentsReviewed  TranslationSegment[] @relation("ReviewedBy")
+  segmentComments   SegmentComment[]     @relation("CommentAuthor")
+  joinRequests      OrganizationJoinRequest[]
+  reviewsGiven      LinguistReview[]  @relation("ReviewsGiven")
+  reviewsReceived   LinguistReview[]  @relation("ReviewsReceived")
+  blacklistOwner    LinguistBlacklist[] @relation("BlacklistOwner")
+  blacklisted       LinguistBlacklist[] @relation("Blacklisted")
+  departmentMemberships DepartmentMember[]
+  invitationsSent   DepartmentInvitation[] @relation("InvitesSent")
+  issuesLogged      SegmentIssue[]         @relation("IssuesLogged")
+  linguistInvitesSent     LinguistInvitation[]   @relation("LinguistInvitesSent")
+  linguistInvitesAccepted LinguistInvitation[]   @relation("LinguistInvitesAccepted")
+  clientAccountAccess     MemberClientAccountAccess[]
+  inAppNotifications      InAppNotification[]
+  notificationPreferences UserNotificationPreference[]
+  authoredResources       ResourceArticle[]            @relation("AuthoredResources")
+  studioWorkspace         StudioWorkspace?
+
+  impersonationTokensIssued   ImpersonationToken[] @relation("AdminImpersonations")
+  impersonationTokensReceived ImpersonationToken[] @relation("ImpersonationTargets")
+}
+
+enum Role {
+  CLIENT
+  LINGUIST
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Organization {
+  id                     String   @id @default(cuid())
+  name                   String
+  slug                   String   @unique
+  plan                   Plan     @default(STARTER)
+  creditBalance          Int      @default(0)
+  // Business context — fed into AI translation prompts to improve draft quality
+  websiteUrl             String?
+  industry               String?
+  companyBio             String?
+  // Monthly credit cycle
+  creditsResetAt         DateTime?
+  // Stripe billing
+  stripeCustomerId       String?  @unique
+  stripeSubscriptionId   String?  @unique
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  users               User[]
+  projects            Project[]
+  translationMemories TranslationMemory[]
+  glossaries          Glossary[]
+  styleGuides         StyleGuide[]
+  creditTransactions  CreditTransaction[]
+  favoriteLinguists   FavoriteLinguist[]
+  joinRequests        OrganizationJoinRequest[]
+  departments          Department[]
+  linguistBlacklists   LinguistBlacklist[]
+  departmentInvitations DepartmentInvitation[]
+  linguistInvitations   LinguistInvitation[]
+  contentfulConnection  ContentfulConnection?
+  contentfulMappings    ContentfulMapping[]
+  contentfulJobs        ContentfulJob[]
+  apiKeys               ApiKey[]
+  webhookSubscriptions  WebhookSubscription[]
+  clientAccounts        ClientAccount[]
+  memberClientAccountAccess MemberClientAccountAccess[]
+  wordpressConnection   WordpressConnection?
+  wordpressMappings     WordpressMapping[]
+  wordpressJobs         WordpressJob[]
+  ocrRequests           OcrRequest[]
+}
+
+model ClientAccount {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  notes          String?
+  // Business context for this end-client — fed into AI translation prompts
+  websiteUrl     String?
+  industry       String?
+  companyBio     String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  translationMemories      TranslationMemory[]
+  glossaries               Glossary[]
+  styleGuides              StyleGuide[]
+  projects                 Project[]
+  memberAccessAssignments  MemberClientAccountAccess[]
+  ocrRequests              OcrRequest[]
+}
+
+model MemberClientAccountAccess {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientAccountId String
+  clientAccount   ClientAccount @relation(fields: [clientAccountId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@unique([userId, clientAccountId])
+}
+
+enum Plan {
+  STARTER
+  PROFESSIONAL
+  AGENCY
+  ENTERPRISE
+}
+
+model LinguistProfile {
+  id               String       @id @default(cuid())
+  userId           String       @unique
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName      String?
+  bio              String?
+  linguistType     LinguistType @default(SYSTEM)
+  isActive         Boolean      @default(true)
+  languagePairs    Json         @default("[]")
+  specializations  String[]
+  hourlyRate       Decimal?     @db.Decimal(10, 2)
+  certifications   String[]
+  cvUrl            String?
+  isVerified       Boolean      @default(false)
+  rating           Decimal      @default(0) @db.Decimal(3, 2)
+  reviewCount      Int          @default(0)
+  completedJobs    Int          @default(0)
+  acceptanceRate   Decimal      @default(0) @db.Decimal(5, 2)
+  availableFrom    DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  languagePairsStructured LinguistLanguagePair[]
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  name            String
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id])
+  clientId        String
+  client          User          @relation("ClientProjects", fields: [clientId], references: [id])
+  clientAccountId  String?
+  clientAccount    ClientAccount? @relation(fields: [clientAccountId], references: [id], onDelete: SetNull)
+  status          ProjectStatus @default(DRAFT)
+  workflowType    WorkflowType  @default(AI_HUMAN)
+  sourceLanguage  String
+  targetLanguages String[]
+  totalWordCount  Int           @default(0)
+  dueDate            DateTime?
+  notes              String?
+  attachedTmIds      String[]   @default([])
+  attachedGlossaryIds String[]  @default([])
+  attachedStyleGuideIds String[] @default([])
+  // Optional source OCR request whose verified text drove this project.
+  // Set when a user clicks "Use in new translation project" from an
+  // OcrRequest detail page; used by the delivery pipeline to look up
+  // bounding-box layout for high-fidelity translated output.
+  attachedOcrRequestId String?
+  attachedOcrRequest   OcrRequest? @relation("ProjectAttachedOcrRequest", fields: [attachedOcrRequestId], references: [id], onDelete: SetNull)
+  ocrConfidenceWarning Boolean    @default(false)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  documents          Document[]
+  jobs               Job[]
+  creditTransactions CreditTransaction[]
+  ocrRequests        OcrRequest[]    @relation("ProjectOcrRequests")
+}
+
+enum ProjectStatus {
+  DRAFT
+  PENDING
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum WorkflowType {
+  BYOK
+  CREDITS
+  HUMAN_ONLY
+  AI_HUMAN
+}
+
+model Document {
+  id                  String          @id @default(cuid())
+  projectId           String
+  project             Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  originalFilename    String
+  originalFileUrl     String
+  translatedFileUrl   String?
+  fileType            String
+  wordCount           Int             @default(0)
+  processingStatus    ProcessingStatus @default(PENDING)
+  detectedLanguage    String?
+  detectedDocType     String?
+  layoutHtml          String?
+  structuredData      Json?
+  createdAt           DateTime        @default(now())
+
+  segments            TranslationSegment[]
+}
+
+enum ProcessingStatus {
+  PENDING
+  ANALYZING
+  TRANSLATING
+  REVIEW
+  COMPLETED
+  FAILED
+}
+
+model TranslationSegment {
+  id                 String   @id @default(cuid())
+  documentId         String
+  document           Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  segmentIndex       Int
+  sourceText         String
+  translatedText     String?
+  formatHint         String   @default("p")
+  status             SegmentStatus @default(PENDING)
+  assignedLinguistId String?
+  assignedLinguist   User?    @relation("AssignedLinguist", fields: [assignedLinguistId], references: [id])
+  reviewedById       String?
+  reviewedBy         User?    @relation("ReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt         DateTime?
+  createdAt          DateTime @default(now())
+
+  // ── Typography & geometry from pdf-processor microservice ─────────────────
+  // All fields are nullable so existing segments created before this migration
+  // are unaffected. New segments created via extractPdf() will populate them.
+  blockId            String?   // blockId returned by /extract
+  blockType          String?   // paragraph | heading | table-cell | caption | header | footer
+  fontFamily         String?
+  fontSize           Float?
+  fontWeight         String?   // normal | bold
+  fontColor          String?   // #RRGGBB
+  textAlignment      String?   // left | center | right | justify
+  lineHeight         Float?
+  bboxJson           Json?     // { x, y, width, height } in PDF points
+  direction          String?   // ltr | rtl
+  columnIndex        Int?
+  readingOrder       Int?
+  tableId            String?   // set when blockType = "table-cell"
+  tableRow           Int?
+  tableCol           Int?
+  blockPage          Int?      // 0-based page number from the extractor
+
+  @@unique([documentId, segmentIndex])
+  comments           SegmentComment[]
+  issues             SegmentIssue[]
+  jobTranslations    JobTranslation[]
+}
+
+model SegmentComment {
+  id          String   @id @default(cuid())
+  segmentId   String
+  segment     TranslationSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation("CommentAuthor", fields: [authorId], references: [id])
+  text        String
+  resolved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+enum SegmentStatus {
+  PENDING
+  IN_PROGRESS
+  TRANSLATED
+  REVIEWED
+  APPROVED
+}
+
+model Job {
+  id              String         @id @default(cuid())
+  projectId       String
+  project         Project        @relation(fields: [projectId], references: [id])
+  linguistId      String?
+  linguist        User?          @relation("LinguistJobs", fields: [linguistId], references: [id])
+  status          JobStatus      @default(AVAILABLE)
+  linguistSource  LinguistSource @default(SYSTEM_POOL)
+  exclusiveUntil  DateTime?
+  sourceLanguage  String
+  targetLanguage  String
+  wordCount       Int
+  payoutAmount    Decimal?       @db.Decimal(10, 2)
+  businessShare   Decimal?       @db.Decimal(10, 2)
+  breakdownJSON   Json?
+  acceptedAt      DateTime?
+  completedAt     DateTime?
+  auditReportUrl  String?
+  createdAt       DateTime       @default(now())
+
+  routingLogs       RoutingLog[]
+  review            LinguistReview?
+  segmentIssues     SegmentIssue[]
+  jobTranslations   JobTranslation[]
+}
+
+model JobTranslation {
+  id             String             @id @default(cuid())
+  jobId          String
+  job            Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  segmentId      String
+  segment        TranslationSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  translatedText String
+
+  @@unique([jobId, segmentId])
+}
+
+model SegmentIssue {
+  id          String          @id @default(cuid())
+  segmentId   String
+  segment     TranslationSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  reviewerId  String?
+  reviewer    User?           @relation("IssuesLogged", fields: [reviewerId], references: [id])
+  category    IssueCategory
+  subType     String
+  severity    IssueSeverity
+  note        String?
+  source      String          @default("human")
+  createdAt   DateTime        @default(now())
+}
+
+enum IssueCategory {
+  ACCURACY
+  TERMINOLOGY
+  GRAMMAR
+  STYLE_TONE
+  LOCALE
+  FORMATTING_TAGS
+  CONSISTENCY
+  COMPLIANCE
+}
+
+enum IssueSeverity {
+  LOW
+  MEDIUM
+  CRITICAL
+}
+
+enum JobStatus {
+  AVAILABLE
+  EXCLUSIVE
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  APPROVED
+  CANCELLED
+}
+
+model FavoriteLinguist {
+  id             String       @id @default(cuid())
+  customerId     String
+  customer       User         @relation("ClientFavorites", fields: [customerId], references: [id])
+  linguistId     String
+  linguist       User         @relation("FavoritedLinguist", fields: [linguistId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  @@unique([customerId, linguistId])
+}
+
+model StyleGuide {
+  id               String         @id @default(cuid())
+  organizationId   String
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientAccountId  String?
+  clientAccount    ClientAccount? @relation(fields: [clientAccountId], references: [id], onDelete: SetNull)
+  name             String
+  fileName         String
+  mimeType         String
+  content          String         @db.Text
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model TranslationMemory {
+  id              String         @id @default(cuid())
+  organizationId  String
+  organization    Organization   @relation(fields: [organizationId], references: [id])
+  clientAccountId String?
+  clientAccount   ClientAccount? @relation(fields: [clientAccountId], references: [id], onDelete: SetNull)
+  name            String
+  sourceLanguage  String
+  targetLanguage  String
+  entryCount      Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  entries        TmEntry[]
+}
+
+model TmEntry {
+  id           String            @id @default(cuid())
+  tmId         String
+  tm           TranslationMemory @relation(fields: [tmId], references: [id], onDelete: Cascade)
+  sourceText   String
+  targetText   String
+  context      String?
+  createdBy    String            @default("human")
+  confidence   Decimal           @default(1.0) @db.Decimal(5, 2)
+  usageCount   Int               @default(0)
+  lastUsed     DateTime?
+  createdAt    DateTime          @default(now())
+
+  @@unique([tmId, sourceText])
+}
+
+model Glossary {
+  id              String         @id @default(cuid())
+  organizationId  String
+  organization    Organization   @relation(fields: [organizationId], references: [id])
+  clientAccountId String?
+  clientAccount   ClientAccount? @relation(fields: [clientAccountId], references: [id], onDelete: SetNull)
+  name            String
+  languages       String[]
+  termCount       Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  terms          GlossaryTerm[]
+}
+
+model GlossaryTerm {
+  id             String   @id @default(cuid())
+  glossaryId     String
+  glossary       Glossary @relation(fields: [glossaryId], references: [id], onDelete: Cascade)
+  term           String
+  translations   Json
+  definition     String?
+  notes          String?
+  caseSensitive  Boolean  @default(false)
+  doNotTranslate Boolean  @default(false)
+  keepUppercase  Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
+
+model ApiConfiguration {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider        ApiProvider
+  apiKeyEncrypted String
+  model           String?
+  endpoint        String?
+  lastUsed        DateTime?
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, provider])
+}
+
+enum ApiProvider {
+  OPENAI
+  AZURE
+  DEEPL
+  MODERNMT
+  GOOGLE
+}
+
+model CreditTransaction {
+  id                    String            @id @default(cuid())
+  organizationId        String
+  organization          Organization      @relation(fields: [organizationId], references: [id])
+  type                  TransactionType
+  amount                Int
+  description           String?
+  relatedProjectId      String?
+  relatedProject        Project?          @relation(fields: [relatedProjectId], references: [id])
+  stripePaymentIntentId String?
+  breakdownJSON         Json?
+  createdAt             DateTime          @default(now())
+}
+
+enum TransactionType {
+  PURCHASE
+  USAGE
+  REFUND
+  BONUS
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  data      Json             @default("{}")
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
+
+enum NotificationType {
+  PREFERRED_JOB
+  NEW_JOB
+  DEADLINE_REMINDER
+  PAYMENT
+  SYSTEM
+}
+
+model RoutingLog {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id])
+  action    String
+  details   Json     @default("{}")
+  createdAt DateTime @default(now())
+}
+
+model OrganizationJoinRequest {
+  id             String            @id @default(cuid())
+  userId         String
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status         JoinRequestStatus @default(PENDING)
+  message        String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([userId, organizationId])
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model LinguistReview {
+  id          String   @id @default(cuid())
+  jobId       String   @unique
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  reviewerId  String
+  reviewer    User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  linguistId  String
+  linguist    User     @relation("ReviewsReceived", fields: [linguistId], references: [id])
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+}
+
+model LinguistBlacklist {
+  id             String       @id @default(cuid())
+  customerId     String
+  customer       User         @relation("BlacklistOwner", fields: [customerId], references: [id])
+  linguistId     String
+  linguist       User         @relation("Blacklisted", fields: [linguistId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  reason         String?
+  createdAt      DateTime     @default(now())
+
+  @@unique([customerId, linguistId])
+}
+
+model Department {
+  id             String            @id @default(cuid())
+  organizationId String
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  members        DepartmentMember[]
+  invitations    DepartmentInvitation[]
+}
+
+model DepartmentMember {
+  id               String     @id @default(cuid())
+  departmentId     String
+  department       Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role             String     @default("MEMBER")
+  canAccessTM      Boolean    @default(false)
+  canAccessGlossary Boolean   @default(false)
+  requiresApproval Boolean    @default(true)
+  joinedAt         DateTime   @default(now())
+
+  @@unique([departmentId, userId])
+}
+
+model DepartmentInvitation {
+  id               String           @id @default(cuid())
+  departmentId     String
+  department       Department       @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedById      String
+  invitedBy        User             @relation("InvitesSent", fields: [invitedById], references: [id])
+  email            String
+  token            String           @unique @default(cuid())
+  role             String           @default("MEMBER")
+  canAccessTM      Boolean          @default(false)
+  canAccessGlossary Boolean         @default(false)
+  requiresApproval Boolean          @default(true)
+  status           InvitationStatus @default(PENDING)
+  createdAt        DateTime         @default(now())
+  expiresAt        DateTime
+
+  @@unique([departmentId, email])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+model SiteConfig {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model PlanConfig {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  price           Decimal  @db.Decimal(10, 2)
+  period          String   @default("/mo")
+  description     String?
+  features        String[]
+  creditsPerCycle Int      @default(0)
+  isPopular       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  displayOrder    Int      @default(0)
+  ctaText         String   @default("Get Started")
+  ctaHref         String   @default("/register")
+  stripePriceId   String?
+  limitsJson      Json?
+  nameAr          String?
+  descriptionAr   String?
+  featuresAr      String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model PlanFeature {
+  id        String   @id @default(cuid())
+  feature   String
+  planSlug  String
+  enabled   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@unique([feature, planSlug])
+}
+
+model ChangeLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  adminEmail  String?
+  entityType  String
+  entityKey   String?
+  before      Json?
+  after       Json?
+  createdAt   DateTime @default(now())
+}
+
+model CreditPackage {
+  id           String   @id @default(cuid())
+  name         String
+  credits      Int
+  bonusCredits Int      @default(0)
+  priceUsd     Decimal  @db.Decimal(10, 2)
+  isPopular    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CreditRate {
+  id             String   @id @default(cuid())
+  workflowType   String   @unique
+  creditsPerWord Decimal  @db.Decimal(10, 4)
+  label          String
+  description    String?
+  updatedAt      DateTime @updatedAt
+}
+
+model PageMeta {
+  pageKey       String
+  locale        String   @default("en")
+  title         String?
+  description   String?
+  ogTitle       String?
+  ogDescription String?
+  ogImage       String?
+  canonical     String?
+  noIndex       Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+
+  @@id([pageKey, locale])
+}
+
+enum LinguistType {
+  SYSTEM
+  INTERNAL
+}
+
+enum LinguistSource {
+  SYSTEM_POOL
+  PREFERRED
+  INTERNAL
+}
+
+model LanguagePair {
+  id         String   @id @default(cuid())
+  sourceLang String
+  targetLang String
+  linguistProfiles LinguistLanguagePair[]
+
+  @@unique([sourceLang, targetLang])
+}
+
+model LinguistLanguagePair {
+  id                String          @id @default(cuid())
+  linguistProfileId String
+  linguistProfile   LinguistProfile @relation(fields: [linguistProfileId], references: [id], onDelete: Cascade)
+  languagePairId    String
+  languagePair      LanguagePair    @relation(fields: [languagePairId], references: [id], onDelete: Cascade)
+
+  @@unique([linguistProfileId, languagePairId])
+}
+
+model LinguistRate {
+  id             String   @id @default(cuid())
+  workflowType   String   @unique
+  ratePerWord    Decimal  @db.Decimal(10, 5)
+  businessCutPct Decimal  @db.Decimal(5, 2) @default(10)
+  label          String
+  description    String?
+  updatedAt      DateTime @updatedAt
+}
+
+model LinguistInvitation {
+  id               String           @id @default(cuid())
+  organizationId   String
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedById      String
+  invitedBy        User             @relation("LinguistInvitesSent", fields: [invitedById], references: [id])
+  email            String
+  token            String           @unique @default(cuid())
+  languagePairs    Json             @default("[]")
+  status           InvitationStatus @default(PENDING)
+  createdAt        DateTime         @default(now())
+  expiresAt        DateTime
+  acceptedAt       DateTime?
+  acceptedByUserId String?
+  acceptedBy       User?            @relation("LinguistInvitesAccepted", fields: [acceptedByUserId], references: [id])
+}
+
+// ─── Contentful Integration ─────────────────────────────────────────────────
+
+model ContentfulConnection {
+  id              String       @id @default(cuid())
+  organizationId  String       @unique
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  spaceId         String
+  environmentId   String       @default("master")
+  encryptedToken  String
+  connectedByUserId String
+  sourceLocale    String       @default("en-US")
+  targetLocales   Json         @default("[]")
+  deliveryMode    String       @default("DRAFT")
+  connectedAt     DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model ContentfulMapping {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contentTypeId      String
+  contentTypeName    String?
+  translatableFields Json         @default("[]")
+  workflowType       String       @default("AI_HUMAN")
+  excludeSlugs       Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@unique([organizationId, contentTypeId])
+}
+
+model ContentfulJob {
+  id              String                @id @default(cuid())
+  organizationId  String
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  entryId         String
+  entryTitle      String?
+  contentTypeId   String
+  spaceId         String
+  environmentId   String
+  sourceLocale    String
+  selectedFields  Json                  @default("[]")
+  sourceSnapshot  Json                  @default("{}")
+  wordCount       Int                   @default(0)
+  workflowType    String                @default("AI_HUMAN")
+  status          String                @default("QUEUED")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  locales         ContentfulJobLocale[]
+}
+
+model ContentfulJobLocale {
+  id              String        @id @default(cuid())
+  contentfulJobId String
+  contentfulJob   ContentfulJob @relation(fields: [contentfulJobId], references: [id], onDelete: Cascade)
+  targetLocale    String
+  status          String        @default("QUEUED")
+  translatedData  Json?
+  error           String?
+  deliveredAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// ─── Developer SDK ──────────────────────────────────────────────────────────
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  keyPrefix      String
+  keyHash        String       @unique
+  permissions    String[]     @default([])
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+}
+
+model WebhookSubscription {
+  id             String              @id @default(cuid())
+  organizationId String
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  url            String
+  events         String[]            @default([])
+  secret         String
+  isActive       Boolean             @default(true)
+  lastFiredAt    DateTime?
+  failureCount   Int                 @default(0)
+  createdAt      DateTime            @default(now())
+
+  deliveries     WebhookDelivery[]
+}
+
+model WebhookDelivery {
+  id                    String              @id @default(cuid())
+  webhookSubscriptionId String
+  webhookSubscription   WebhookSubscription @relation(fields: [webhookSubscriptionId], references: [id], onDelete: Cascade)
+  event                 String
+  payload               Json
+  responseStatus        Int?
+  responseBody          String?
+  success               Boolean             @default(false)
+  createdAt             DateTime            @default(now())
+}
+
+// ─── LLM Routing & Provider Configuration ───────────────────────────────────
+
+model AiProvider {
+  id           String   @id @default(cuid())
+  name         String
+  type         String   // openai | anthropic | google | azure | vertex | bedrock | cohere | moonshot | custom
+  baseUrl      String?
+  region       String?
+  environment  String   @default("production") // dev | staging | production
+  status       String   @default("active")     // active | inactive
+  rateLimitRpm Int?
+  costProfile  String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  secret       ProviderSecret?
+  models       AiModel[]
+  healthChecks LlmHealthCheck[]
+}
+
+model ProviderSecret {
+  id           String     @id @default(cuid())
+  providerId   String     @unique
+  provider     AiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  encryptedKey String
+  keyMasked    String
+  orgProjectId String?
+  rotatedAt    DateTime   @default(now())
+  updatedBy    String?
+}
+
+model AiModel {
+  id             String     @id @default(cuid())
+  providerId     String
+  provider       AiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  displayName    String
+  apiModelId     String
+  internalKey    String     @unique
+  version        String?
+  contextWindow  Int?
+  outputLimit    Int?
+  status         String     @default("draft") // draft|beta|approved|production|deprecated|retired|disabled
+  latencyTier    String     @default("balanced")   // fast|balanced|high-quality
+  costTier       String     @default("medium")     // low|medium|premium
+  qualityTier    String     @default("standard")   // standard|advanced|flagship
+  capabilities   Json       @default("{}")
+  domains        String[]   @default([])
+  languageGroups String[]   @default([])
+  warnings       String[]   @default([])
+  benchmarkNotes          String?
+  effectiveFrom           DateTime?
+  deprecatedAt            DateTime?
+  retiredAt               DateTime?
+  isDefault               Boolean    @default(false)
+  notes                   String?
+  costPerInputTokenUsd    Decimal?   @db.Decimal(14, 10)
+  costPerOutputTokenUsd   Decimal?   @db.Decimal(14, 10)
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+
+  primaryRules   LlmRoutingRule[] @relation("PrimaryModel")
+  secondaryRules LlmRoutingRule[] @relation("SecondaryModel")
+  tertiaryRules  LlmRoutingRule[] @relation("TertiaryModel")
+  healthChecks   LlmHealthCheck[]
+  usageEvents    LlmUsageEvent[]
+}
+
+model LlmUsageEvent {
+  id               String    @id @default(cuid())
+  createdAt        DateTime  @default(now())
+  organizationId   String?
+  projectId        String?
+  jobId            String?
+  segmentId        String?
+  modelId          String?
+  model            AiModel?  @relation(fields: [modelId], references: [id], onDelete: SetNull)
+  modelKey         String?
+  providerId       String?
+  billingMode      String    @default("CREDITS")
+  promptTokens     Int       @default(0)
+  completionTokens Int       @default(0)
+  totalTokens      Int       @default(0)
+  costUsd          Decimal?  @db.Decimal(14, 8)
+  callCount        Int       @default(1)
+  kind             String    @default("chat_completion")
+
+  @@index([createdAt])
+  @@index([modelId, createdAt])
+  @@index([jobId])
+  @@index([organizationId, createdAt])
+  @@index([billingMode, createdAt])
+}
+
+model LlmRoutingRule {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  priority         Int      @default(100)
+  enabled          Boolean  @default(true)
+  conditions       Json     @default("{}")
+  primaryModelId   String?
+  primaryModel     AiModel? @relation("PrimaryModel", fields: [primaryModelId], references: [id], onDelete: SetNull)
+  secondaryModelId String?
+  secondaryModel   AiModel? @relation("SecondaryModel", fields: [secondaryModelId], references: [id], onDelete: SetNull)
+  tertiaryModelId  String?
+  tertiaryModel    AiModel? @relation("TertiaryModel", fields: [tertiaryModelId], references: [id], onDelete: SetNull)
+  policy           Json     @default("{}")
+  isTemplate       Boolean  @default(false)
+  createdBy        String?
+  updatedBy        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model LlmHealthCheck {
+  id          String     @id @default(cuid())
+  providerId  String
+  provider    AiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  modelId     String?
+  model       AiModel?   @relation(fields: [modelId], references: [id], onDelete: SetNull)
+  status      String     // ok | failed | degraded | timeout
+  latencyMs   Int?
+  diagnostics Json       @default("{}")
+  checkedAt   DateTime   @default(now())
+}
+
+model LlmAuditLog {
+  id          String   @id @default(cuid())
+  actorId     String?
+  actorEmail  String?
+  action      String
+  entityType  String
+  entityId    String?
+  entityName  String?
+  before      Json?
+  after       Json?
+  environment String   @default("production")
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+// ── Notification System ────────────────────────────────────────────────────
+
+model NotificationTemplate {
+  id                 String   @id @default(cuid())
+  eventKey           String
+  channel            String
+  audienceType       String   @default("user")   // user | admin | all
+  subject            String?
+  htmlBody           String?
+  textBody           String?
+  inAppTitle         String?
+  inAppBody          String?
+  inAppLink          String?
+  ctaLabel           String?
+  ctaUrl             String?
+  variables          Json     @default("[]")
+  priority           String   @default("normal")
+  language           String   @default("en")
+  version            Int      @default(1)
+  fallbackTemplateId String?
+  fallback           NotificationTemplate?  @relation("TemplateFallback", fields: [fallbackTemplateId], references: [id])
+  fallbacks          NotificationTemplate[] @relation("TemplateFallback")
+  isActive           Boolean  @default(true)
+  isCritical         Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  deliveries  NotificationDelivery[]
+
+  @@unique([eventKey, channel])
+}
+
+model NotificationEvent {
+  id          String   @id @default(cuid())
+  eventKey    String
+  entityType  String?
+  entityId    String?
+  payloadJson Json     @default("{}")
+  triggeredBy String?
+  recipientIds String[]
+  variables   Json     @default("{}")
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  deliveries  NotificationDelivery[]
+}
+
+model NotificationDelivery {
+  id              String   @id @default(cuid())
+  templateId      String
+  template        NotificationTemplate @relation(fields: [templateId], references: [id])
+  eventId         String?
+  event           NotificationEvent? @relation(fields: [eventId], references: [id])
+  channel         String
+  recipient       String
+  recipientUserId String?
+  recipientEmail  String?
+  renderedSubject String?
+  renderedBody    String?
+  subject         String?
+  body            String?
+  variables       Json     @default("{}")
+  status          String   @default("pending")
+  retryCount      Int      @default(0)
+  attempts        Int      @default(0)
+  errorMessage    String?
+  lastError       String?
+  sentAt          DateTime?
+  failedAt        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model InAppNotification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventKey  String
+  title     String
+  body      String
+  link      String?
+  priority  String   @default("normal")
+  isRead    Boolean  @default(false)
+  read      Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model UserNotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventKey  String
+  emailEnabled  Boolean @default(true)
+  inAppEnabled  Boolean @default(true)
+  digestMode    String  @default("instant")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, eventKey])
+}
+
+// ─── Resources CMS ────────────────────────────────────────────────────────────
+
+model ResourceCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?  @default("#0091AE")
+  sortOrder   Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  articles    ResourceArticle[]
+  faqs        ResourceFaqItem[]
+}
+
+model ResourceArticle {
+  id              String    @id @default(cuid())
+  title           String
+  subtitle        String?
+  slug            String    @unique
+  excerpt         String?
+  body            String    @db.Text
+  contentType     String    @default("GUIDE")
+  audiences       String[]  @default([])
+  categoryId      String?
+  category        ResourceCategory? @relation(fields: [categoryId], references: [id])
+  tags            String[]  @default([])
+  icon            String?
+  featured        Boolean   @default(false)
+  seoTitle        String?
+  metaDescription String?
+  status          String    @default("DRAFT")
+  sortOrder       Int       @default(0)
+  authorId        String?
+  author          User?     @relation("AuthoredResources", fields: [authorId], references: [id])
+  relatedIds      String[]  @default([])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model ResourceFaqItem {
+  id          String    @id @default(cuid())
+  question    String
+  answer      String    @db.Text
+  categoryId  String?
+  category    ResourceCategory? @relation(fields: [categoryId], references: [id])
+  audiences   String[]  @default([])
+  sortOrder   Int       @default(0)
+  featured    Boolean   @default(false)
+  status      String    @default("PUBLISHED")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─── Linguist Studio ──────────────────────────────────────────────────────────
+
+model StudioWorkspace {
+  id                    String    @id @default(cuid())
+  linguistId            String    @unique
+  subscriptionStatus    String    @default("INACTIVE")
+  subscriptionStartedAt DateTime?
+  subscriptionExpiresAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  linguist     User                @relation(fields: [linguistId], references: [id], onDelete: Cascade)
+  clients      StudioClient[]
+  jobs         StudioJob[]
+  tms          StudioTm[]
+  glossaries   StudioGlossary[]
+  styleGuides  StudioStyleGuide[]
+  activityLogs StudioActivityLog[]
+}
+
+model StudioClient {
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  name                String
+  contactName         String?
+  contactEmail        String?
+  companyName         String?
+  notes               String?
+  preferredLanguages  String[]  @default([])
+  status              String    @default("ACTIVE")
+  defaultTmId         String?
+  defaultGlossaryId   String?
+  defaultStyleGuideId String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  workspace StudioWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  jobs      StudioJob[]
+}
+
+model StudioJob {
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  clientId            String?
+  title               String
+  sourceLanguage      String
+  targetLanguage      String
+  deadline            DateTime?
+  notes               String?
+  status              String    @default("DRAFT")
+  translationMethod   String    @default("AI_DRAFT_HUMAN_REVISION")
+  attachedTmId        String?
+  attachedGlossaryId  String?
+  attachedStyleGuideId String?
+  wordCount           Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  workspace StudioWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    StudioClient?   @relation(fields: [clientId], references: [id])
+  files     StudioJobFile[]
+}
+
+model StudioJobFile {
+  id               String   @id @default(cuid())
+  jobId            String
+  originalFilename String
+  fileType         String   @default("pdf")
+  storedPath       String?
+  wordCount        Int      @default(0)
+  segments         Json?
+  structuredData   Json?
+  layoutHtml       String?
+  aiDraftGenerated Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  job          StudioJob                  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  translations StudioSegmentTranslation[]
+}
+
+model StudioSegmentTranslation {
+  id             String   @id @default(cuid())
+  fileId         String
+  segmentIndex   Int
+  sourceText     String
+  translatedText String?
+  formatHint     String   @default("p")
+  isDraft        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  file StudioJobFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, segmentIndex])
+}
+
+model StudioTm {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  sourceLang  String
+  targetLang  String
+  entries     Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace StudioWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model StudioGlossary {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  sourceLang  String
+  targetLang  String
+  terms       Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace StudioWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model StudioStyleGuide {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace StudioWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model StudioActivityLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  action      String
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  workspace StudioWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// ─── WordPress Integration ───────────────────────────────────────────────────
+
+model WordpressConnection {
+  id                  String       @id @default(cuid())
+  organizationId      String       @unique
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  siteUrl             String
+  username            String
+  encryptedAppPassword String
+  multilingualPlugin  String       @default("WPML")
+  sourceLanguage      String       @default("en")
+  targetLanguages     Json         @default("[]")
+  deliveryMode        String       @default("DRAFT")
+  webhookSecret       String
+  connectedByUserId   String
+  siteProfile         Json?
+  pluginVersion       String?
+  connectedAt         DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  lastSyncAt          DateTime?
+}
+
+model WordpressMapping {
+  id                  String       @id @default(cuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  postType            String
+  postTypeName        String?
+  includeTitle        Boolean      @default(true)
+  includeContent      Boolean      @default(true)
+  includeExcerpt      Boolean      @default(false)
+  includeAcf          Boolean      @default(false)
+  includeYoast        Boolean      @default(false)
+  includeSlug         Boolean      @default(false)
+  includeMenus        Boolean      @default(false)
+  /** Per-post-type default status for translated posts: DRAFT or PUBLISH */
+  targetStatus        String       @default("DRAFT")
+  workflowType        String       @default("AI_HUMAN")
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@unique([organizationId, postType])
+}
+
+model WordpressJob {
+  id                  String              @id @default(cuid())
+  organizationId      String
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  siteUrl             String
+  sourcePostId        Int
+  sourcePostType      String
+  sourcePostTitle     String?
+  sourceLanguage      String
+  sourceSnapshot      Json                @default("{}")
+  wordCount           Int                 @default(0)
+  workflowType        String              @default("AI_HUMAN")
+  status              String              @default("QUEUED")
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  locales             WordpressJobLocale[]
+}
+
+model WordpressJobLocale {
+  id              String       @id @default(cuid())
+  wordpressJobId  String
+  wordpressJob    WordpressJob @relation(fields: [wordpressJobId], references: [id], onDelete: Cascade)
+  targetLanguage  String
+  status          String       @default("QUEUED")
+  targetPostId    Int?
+  contentechJobId String?
+  translatedData  Json?
+  error           String?
+  deliveredAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+// ─── OCR Requests (Localization Asset) ──────────────────────────────────────
+
+enum OcrRequestStatus {
+  NEEDS_VERIFICATION
+  IN_REVIEW
+  VERIFIED
+  READY
+  FAILED
+}
+
+model OcrRequest {
+  id                String           @id @default(cuid())
+  organizationId    String
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientAccountId   String?
+  clientAccount     ClientAccount?   @relation(fields: [clientAccountId], references: [id], onDelete: SetNull)
+  createdById       String
+  // Friendly display name (defaults to filename when not provided)
+  name              String?
+
+  sourceFilename    String
+  sourceFileUrl     String           // path to persisted scanned PDF / image
+  sourceMimeType    String?          // application/pdf, image/jpeg, image/png, image/webp
+  sourceLanguage    String?          // detected language
+  pageCount         Int              @default(0)
+  wordCount         Int              @default(0)
+
+  status            OcrRequestStatus @default(NEEDS_VERIFICATION)
+  workflowType      OcrWorkflowType  @default(AI_ONLY)
+  provider          String           @default("tesseract")    // tesseract | mistral | mistral+tesseract
+  avgConfidence     Decimal          @db.Decimal(5, 4)        // 0.0000 – 1.0000
+  perPageConfidence Float[]          @default([])             // parallel array of per-page conf (0..1)
+  pages             Json             @default("[]")           // OcrPage[] per-page text/conf/blocks
+  extractedText     String?          // joined text across all pages
+  extractedMarkdown String?          // Mistral markdown when available
+  structuredLayout  Json?            // bounding-box layout for delivery overlay
+
+  // Linguist verification (AI + Human Review workflow)
+  linguistJobId     String?          // backing Job id when human review requested
+  verifiedText      String?          // corrected text submitted by linguist
+
+  assignedLinguistId String?
+  notes              String?
+  verifiedAt         DateTime?
+  verifiedById       String?
+
+  // Optional link to project created from this OCR (after verification)
+  linkedProjectId    String?
+  linkedProject      Project?        @relation("ProjectOcrRequests", fields: [linkedProjectId], references: [id], onDelete: SetNull)
+  // Reverse side of Project.attachedOcrRequestId (a single project may be
+  // anchored back to its source OCR request)
+  attachedToProjects Project[]       @relation("ProjectAttachedOcrRequest")
+
+  // Credits charged when the request was created (per-page rate)
+  creditsCharged     Int             @default(0)
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([organizationId, status])
+  @@index([organizationId, clientAccountId])
+}
+
+enum OcrWorkflowType {
+  AI_ONLY
+  AI_HUMAN
+}
+
+model ImpersonationToken {
+  id           String    @id @default(cuid())
+  token        String    @unique @default(cuid())
+  adminId      String
+  targetUserId String
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  admin        User      @relation("AdminImpersonations", fields: [adminId], references: [id])
+  targetUser   User      @relation("ImpersonationTargets", fields: [targetUserId], references: [id])
+}

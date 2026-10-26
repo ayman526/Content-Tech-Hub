@@ -1,0 +1,52 @@
+Module C: Linguists Portal
+Terminology Enforcement:
+NEVER use "Freelancer"
+ALWAYS use "Linguist" or "Team Member"
+Portal Access:
+Dedicated login route: /portal
+Role-based dashboard
+Distinct branding from client portal
+Job Feed Interface:
+┌─────────────────────────────────────────────────────────────┐
+│ 📋 Available Jobs                          [Filter ▼] [Sort]│
+├─────────────────────────────────────────────────────────────┤
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ ⭐ Preferred Job | 60:00 remaining                      │ │
+│ │ Legal Contract | English → Arabic                      │ │
+│ │ 2,340 words | Human Review | $85                       │ │
+│ │ Client: TechCorp Inc. | Deadline: 48 hours             │ │
+│ │ [View Details] [Accept] [Decline]                      │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │ Standard Job                                            │ │
+│ │ Marketing Brochure | Spanish → English                 │ │
+│ │ 1,200 words | MTPE | $45                               │ │
+│ │ [View Details] [Accept] [Decline]                      │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+Side-by-Side Editor:
+┌──────────────────────────────────────────────────────────────┐
+│ Project: Legal_Contract_v2.docx    [Auto-save: ✓]            │
+├─────────────────────────┬────────────────────────────────────┤
+│      SOURCE (English)   │       TARGET (Arabic)              │
+├─────────────────────────┼────────────────────────────────────┤
+│                         │                                    │
+│ The Parties agree to    │ توافق الأطراف على الشروط          │
+│ the terms and conditions│ والأحكام الموضحة في هذا           │
+│ set forth in this       │ ╔══════════════════════╗          │
+│ Agreement.              │ ║ Glossary Term:       ║          │
+│                         │ ║ "Agreement" = "اتفاقية"║          │
+│ [Term highlighted]      │ ╚══════════════════════╝          │
+│                         │                                    │
+├─────────────────────────┴────────────────────────────────────┤
+│ [📋 Glossary] [📝 TM Matches] [💬 Comments] [⏱ History]      │
+│                                                              │
+│ [◀ Previous] [Next ▶]     [Submit for Review] [Save Draft]  │
+└──────────────────────────────────────────────────────────────┘
+Editor Features:
+Track Changes with visual diff
+Glossary term highlighting (color-coded)
+Translation Memory suggestions panel
+Comment thread per segment
+Version history sidebar
+Keyboard shortcuts for efficiency

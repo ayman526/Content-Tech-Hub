@@ -1,0 +1,646 @@
+Build a production-ready Configuration page inside the System Admin Panel for a multilingual AI translation SaaS.
+
+Goal:
+Create an admin-only control center where platform administrators can add, test, activate, deactivate, and route LLM providers/models. The system must intelligently choose the best available model based on:
+1) subject matter/domain
+2) language pair
+3) region
+4) content length / context size
+5) content type
+6) priority (quality / speed / cost)
+7) model availability and fallback status
+
+Important architectural rule:
+Do NOT hardcode model choices directly into business logic.
+Instead, create a flexible rules engine + admin UI so the operations team can update routing logic without code changes when providers deprecate models or new models outperform old ones.
+
+Context:
+This platform serves enterprise customers, agencies, and possibly sub-clients. Translation quality must be optimized by using the most relevant LLM for the specific language pair and subject matter.
+
+Current strategy assumptions to support as INITIAL ADMIN-EDITABLE defaults:
+- Technical / legal / medical / specialized documentation:
+  prefer high-reasoning, high-control models
+- Creative / literary / marketing translation:
+  prefer models known for tone, nuance, and style
+- Very large documents:
+  prefer long-context models
+- Major European language pairs:
+  several flagship models may be valid
+- Asian language pairs:
+  support regional/specialized providers where configured
+- Low-resource languages:
+  support multilingual/research-focused models where configured
+
+But these must be fully editable in admin settings.
+
+Build the page and supporting backend with the following scope:
+
+==================================================
+1. PAGE PURPOSE
+==================================================
+
+Create an "LLM Routing & Provider Configuration" page under:
+System Admin > AI Configuration > LLM Routing
+
+This page should allow admins to:
+- Add API providers
+- Store provider credentials securely
+- Register one or more models under each provider
+- Define what each model is best for
+- Create routing rules by language pair, domain, region, and content size
+- Assign fallback model chains
+- Test model connectivity
+- Run test routing simulations
+- Track provider/model status
+- Mark models as deprecated, disabled, beta, or production-approved
+- View which model will be selected for a given translation request
+
+==================================================
+2. DESIGN REQUIREMENTS
+==================================================
+
+Design style:
+- Clean, enterprise-grade admin UI
+- Premium SaaS feel, not AI-generated look
+- Minimal but information-dense
+- Use card sections, tabs, clear hierarchy, table views, and modal forms
+- Modern spacing, strong usability, and excellent readability
+- Use a professional dark-on-light or neutral enterprise theme
+- Prioritize operational clarity over visual gimmicks
+
+The UI must feel suitable for:
+- platform admins
+- AI operations managers
+- localization operations leads
+- enterprise solution architects
+
+==================================================
+3. MAIN PAGE STRUCTURE
+==================================================
+
+Create the following tabs or sections:
+
+A) Provider Registry
+B) Model Catalog
+C) Routing Rules
+D) Fallback Chains
+E) Test Console
+F) Audit Log
+G) Health & Status
+
+==================================================
+4. PROVIDER REGISTRY
+==================================================
+
+In Provider Registry, allow admin to add providers such as:
+- OpenAI
+- Anthropic
+- Google
+- Cohere
+- Moonshot AI
+- Meta-hosted / self-hosted / custom endpoint
+- Azure OpenAI
+- Vertex AI
+- Bedrock
+- Custom OpenAI-compatible endpoint
+
+Provider form fields:
+- Provider display name
+- Provider type (official API / cloud marketplace / custom OpenAI-compatible / self-hosted)
+- Base URL / endpoint
+- API key / secret token
+- Optional organization/project ID
+- Region / deployment region
+- Environment (dev / staging / production)
+- Rate limit settings
+- Cost profile
+- Status toggle (active / inactive)
+- Notes
+- Webhook or callback support if needed
+- Test connection button
+
+Security requirements:
+- Never expose raw API keys in UI after save
+- Encrypt secrets at rest
+- Mask credentials in frontend
+- Support secret rotation
+- RBAC: only super admin can reveal last updated metadata or replace secrets
+- Full audit trail for changes
+
+==================================================
+5. MODEL CATALOG
+==================================================
+
+Under each provider, allow admin to register multiple models.
+
+Model form fields:
+- Provider
+- Model name
+- Internal model key
+- API model identifier
+- Version / snapshot label
+- Context window
+- Max output tokens
+- Supports JSON mode? yes/no
+- Supports function/tool calling? yes/no
+- Supports glossary injection? yes/no
+- Supports style guidance? yes/no
+- Supports terminology locking? yes/no
+- Supports document-length translation? yes/no
+- Supports multilingual reasoning? yes/no
+- Supports low-resource languages? yes/no
+- Latency tier (fast / balanced / high-quality)
+- Cost tier (low / medium / premium)
+- Quality tier (standard / advanced / flagship)
+- Availability status:
+  - draft
+  - beta
+  - approved
+  - production
+  - deprecated
+  - retired
+  - disabled
+- Effective start date
+- Deprecation date
+- Retirement date
+- Notes / benchmarking notes
+
+Also include “Best suited for” tags:
+- legal
+- medical
+- technical
+- software
+- marketing
+- literary
+- ecommerce
+- customer support
+- finance
+- life sciences
+- patents
+- government
+- education
+- media
+- long-document
+- low-resource-languages
+- CJK
+- RTL
+- Arabic
+- EU legal
+- code / developer docs
+
+Also include supported language groups:
+- major European
+- Arabic
+- CJK
+- Indic
+- African languages
+- low-resource languages
+- multilingual generalist
+
+Each model record should allow:
+- activate/deactivate
+- mark as default for a use case
+- attach benchmark score notes
+- attach region suitability
+- define custom warnings (e.g. “avoid for legal contracts”, “good for Arabic marketing”, “best for long reports”)
+
+==================================================
+6. ROUTING RULES ENGINE
+==================================================
+
+This is the most important part.
+
+Build a configurable rules engine with rule priority ordering.
+
+A rule can route based on any combination of:
+- source language
+- target language
+- language pair
+- source region
+- target region
+- subject matter/domain
+- content type
+- token/document size
+- customer tier
+- workspace type (direct client / agency / reseller / enterprise)
+- requested output style
+- terminology strictness
+- speed-vs-quality preference
+- data residency requirement
+- provider availability
+- budget limit
+- human review required? yes/no
+
+Each rule should support:
+- Rule name
+- Description
+- Priority number
+- Enabled toggle
+- Match conditions
+- Primary model
+- Secondary fallback
+- Tertiary fallback
+- Confidence threshold
+- Terminology mode
+- Glossary enforcement mode
+- Style guide mode
+- Retry behavior
+- Timeout behavior
+- Escalation behavior
+- Notes
+
+Rule logic behavior:
+- Highest priority matching rule wins
+- If primary model unavailable, use fallback chain
+- If no exact rule match exists, use a default global routing policy
+- Admin can reorder rules via drag-and-drop
+- Admin can simulate a request and see which rule matched and why
+
+==================================================
+7. REQUIRED DEFAULT RULE TEMPLATES
+==================================================
+
+Prebuild editable starter templates such as:
+
+1. Technical / Legal / Medical / Specialized
+Condition:
+- domain in [legal, medical, technical, IT, compliance]
+Action:
+- prefer high-reasoning flagship models approved for terminology-heavy content
+
+2. Creative / Marketing / Literary
+Condition:
+- domain in [marketing, literary, branding, transcreation]
+Action:
+- prefer models tagged strong in tone, nuance, style, and cultural adaptation
+
+3. Large Documents
+Condition:
+- token estimate > configurable threshold OR document type in [book, long report, codebase, policy manual]
+Action:
+- prefer long-context models
+
+4. Major EU language pairs
+Condition:
+- pair in [EN-FR, FR-EN, EN-DE, DE-EN, EN-ES, ES-EN, EN-IT, IT-EN]
+Action:
+- allow multiple approved flagship options, ranked by cost/quality policy
+
+5. CJK language pairs
+Condition:
+- source or target language in [zh, ja, ko]
+Action:
+- prioritize models tagged strong for CJK, then multilingual long-context fallback
+
+6. Low-resource languages
+Condition:
+- source or target language is marked low-resource
+Action:
+- prioritize models tagged multilingual / low-resource support
+
+7. Arabic and RTL-sensitive content
+Condition:
+- source or target language in [ar, fa, ur, he]
+Action:
+- prefer models validated for RTL formatting and Arabic nuance
+
+8. Budget-sensitive routing
+Condition:
+- workspace plan = standard OR request priority = low-cost
+Action:
+- choose lowest-cost approved model that still matches the domain
+
+9. Premium-quality routing
+Condition:
+- workspace plan = enterprise premium OR request priority = best-quality
+Action:
+- choose highest-quality approved model for the matched domain and language pair
+
+==================================================
+8. MODEL SELECTION EXPLAINABILITY
+==================================================
+
+For every routing decision, the system must produce an explanation object:
+- matched rule name
+- why it matched
+- selected provider
+- selected model
+- fallback options
+- blocked models and reasons
+- confidence score
+- policy notes
+
+Show this in the admin Test Console and optionally in internal job logs.
+
+==================================================
+9. TEST CONSOLE
+==================================================
+
+Create a “Routing Simulator” where admin can enter:
+- source language
+- target language
+- domain
+- region
+- document type
+- estimated tokens
+- terminology strictness
+- priority mode (quality / speed / cost)
+- client tier
+- human review yes/no
+
+Then show:
+- matched rule
+- selected primary model
+- fallback chain
+- reason for selection
+- any risk flags
+- estimated cost tier
+- estimated latency tier
+
+Also add provider connection tests:
+- ping provider
+- validate credentials
+- list available models if provider supports it
+- verify region configuration
+- save diagnostics log
+
+==================================================
+10. HEALTH & STATUS DASHBOARD
+==================================================
+
+Create a dashboard widget panel showing:
+- active providers
+- active models
+- deprecated models
+- failed connection tests
+- retired models still referenced in rules
+- routing rules with missing models
+- secrets nearing rotation date
+- last successful sync / health check
+- provider uptime trend
+- model usage count
+- fallback frequency
+
+Add warning banners for:
+- rule references retired model
+- fallback chain broken
+- provider disabled but rule still active
+- secret expired
+- model marked deprecated but still default
+
+==================================================
+11. AUDIT LOG
+==================================================
+
+All changes must be logged:
+- who changed what
+- old value
+- new value
+- timestamp
+- environment
+- reason/comment
+
+Audit events include:
+- provider added
+- credential rotated
+- model activated/deactivated
+- routing rule changed
+- fallback changed
+- model deprecated
+- test run executed
+- connection check failed
+
+==================================================
+12. BACKEND / DATA MODEL
+==================================================
+
+Design robust backend models such as:
+
+Provider
+- id
+- name
+- type
+- base_url
+- masked_credential_metadata
+- region
+- environment
+- status
+- created_at
+- updated_at
+
+ProviderSecret
+- id
+- provider_id
+- encrypted_secret
+- rotated_at
+- updated_by
+
+ModelCatalogEntry
+- id
+- provider_id
+- display_name
+- api_model_id
+- internal_key
+- version
+- status
+- context_window
+- output_limit
+- capabilities_json
+- supported_domains_json
+- supported_languages_json
+- cost_tier
+- latency_tier
+- quality_tier
+- notes
+- dates_json
+
+RoutingRule
+- id
+- name
+- description
+- priority
+- enabled
+- conditions_json
+- primary_model_id
+- secondary_model_id
+- tertiary_model_id
+- policy_json
+- created_by
+- updated_by
+- timestamps
+
+FallbackPolicy
+- id
+- rule_id
+- sequence_json
+- retry_policy_json
+
+HealthCheck
+- id
+- provider_id
+- model_id nullable
+- status
+- diagnostics_json
+- checked_at
+
+AuditLog
+- id
+- actor_id
+- action
+- entity_type
+- entity_id
+- old_values_json
+- new_values_json
+- created_at
+
+==================================================
+13. API ENDPOINTS
+==================================================
+
+Create admin APIs for:
+- add/update/delete provider
+- rotate provider secret
+- test provider connection
+- add/update/delete model
+- list models by provider/status
+- add/update/delete/reorder rules
+- simulate routing decision
+- get health summary
+- get audit logs
+
+Use clean service abstraction:
+- ProviderService
+- ModelCatalogService
+- RoutingEngineService
+- HealthCheckService
+- AuditLogService
+
+==================================================
+14. ROUTING ENGINE IMPLEMENTATION NOTES
+==================================================
+
+Implement a scoring + rule-priority system:
+- exact language pair match > language family match
+- exact domain match > broad domain tag match
+- approved/production models only by default
+- deprecated/retired models excluded unless explicitly forced
+- disabled models never selectable
+- long-document requirement must check context capacity
+- low-resource language requests should boost multilingual/research-focused models
+- premium-quality mode favors quality tier
+- cost-sensitive mode favors lower cost tier
+- speed mode favors low latency tier
+
+Support a final “policy guardrail” layer:
+- reject models that do not meet data residency policy
+- reject models that do not support required features
+- reject models that exceed configured cost thresholds
+- reject models that are unhealthy or unavailable
+
+==================================================
+15. UX DETAILS
+==================================================
+
+Include:
+- advanced filters
+- searchable tables
+- bulk enable/disable
+- tag chips
+- sortable columns
+- side drawer details
+- inline validation
+- confirmation dialogs for risky actions
+- diff preview before saving rule changes
+- duplicate rule action
+- clone model config action
+- export/import rules as JSON
+- optimistic but safe admin UX
+
+==================================================
+16. DEFAULT SEED DATA
+==================================================
+
+Seed the system with editable example providers and models, but clearly mark them as sample/default records.
+Do not hardcode outdated model assumptions as permanent truth.
+Add metadata fields so admins can update recommendations over time.
+
+Seed examples should include categories like:
+- OpenAI flagship reasoning model
+- Anthropic high-quality writing model
+- Google long-context model
+- Cohere multilingual / low-resource-supporting model
+- Moonshot CJK-friendly model
+- Meta/self-hosted multilingual translation-oriented option
+
+==================================================
+17. ENTERPRISE SAFETY / GOVERNANCE
+==================================================
+
+Add:
+- RBAC permissions
+- environment separation
+- auditability
+- safe handling of credentials
+- deprecation awareness
+- warnings before disabling active providers
+- warnings before retiring model referenced by rule
+- no secret leakage to logs
+- secure server-side validation
+
+==================================================
+18. TECHNICAL EXPECTATIONS
+==================================================
+
+Build this as a complete feature, not a mockup.
+Include:
+- frontend admin page
+- backend APIs
+- DB schema / migrations
+- seed data
+- routing simulation logic
+- health-check hooks
+- validation
+- clear component structure
+- scalable architecture
+
+Use a modern stack suitable for Replit deployment.
+Code quality should be clean, modular, maintainable, and ready for enterprise extension.
+
+==================================================
+19. NICE-TO-HAVE FEATURES
+==================================================
+
+If time permits, also add:
+- benchmark score matrix per model
+- admin notes for language-pair validation
+- model recommendation wizard
+- “shadow routing” mode to compare recommended model vs actual selected model
+- A/B routing experiments
+- cost estimation preview
+- usage analytics by domain/language pair
+- rule conflict detection
+- deprecation center with migration suggestions
+
+==================================================
+20. FINAL DELIVERABLE
+==================================================
+
+Deliver:
+1. Full admin UI
+2. Functional backend
+3. Database models
+4. Seed data
+5. Routing simulator
+6. Health checks
+7. Audit logging
+8. Example rules
+9. Clean architecture
+10. Production-quality code
+
+Important:
+The page must help the business answer this exact question:
+“For this translation request, which LLM should we use, why, and what happens if that model is unavailable?”
+
+Also important:
+Design the system so the admin team can continuously update provider/model strategy as the LLM market changes.
+Do not assume any one model remains best forever.

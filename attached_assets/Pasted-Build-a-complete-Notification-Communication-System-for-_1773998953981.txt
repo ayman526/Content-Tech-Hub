@@ -1,0 +1,520 @@
+Build a complete Notification & Communication System for this SaaS platform.
+
+Goal:
+The platform must automatically generate and send the right messages, emails, and in-app/system notifications when important events happen in the system.
+
+This is not just a UI task.
+Build the full operational notification engine including:
+- notification triggers
+- email templates
+- in-app notifications
+- optional SMS/WhatsApp-ready architecture
+- template variable replacement
+- event-based sending
+- role-based recipient selection
+- notification preferences
+- delivery logs
+- retry/failure handling
+- admin configuration
+
+The system must feel production-ready, enterprise-grade, and fully connected to real business events.
+
+==================================================
+1. CORE REQUIREMENT
+==================================================
+
+Do not build static templates only.
+Build a full notification system that is connected to actual application logic.
+
+Whenever a business event happens, the system should be able to:
+1. detect the event
+2. identify recipients
+3. choose the correct template
+4. inject dynamic data
+5. send via the correct channel
+6. store delivery logs
+7. show in-app notification if relevant
+8. handle failures/retries
+9. respect user preferences and roles
+
+==================================================
+2. CHANNELS TO SUPPORT
+==================================================
+
+Build support for:
+- Email
+- In-app notifications
+- System alerts
+- Admin alerts
+
+Design the backend so it can later support:
+- SMS
+- WhatsApp
+- Slack
+- Webhooks
+- Push notifications
+
+==================================================
+3. EVENTS / TRIGGERS TO SUPPORT
+==================================================
+
+Build notification triggers for major business events, including at minimum:
+
+A. User / Account Events
+- user registered
+- email verification required
+- email verified
+- welcome message
+- password reset requested
+- password changed
+- user invited to workspace
+- invitation accepted
+- role changed
+- account suspended/reactivated
+
+B. Project Events
+- project created
+- project updated
+- project submitted
+- project assigned
+- project status changed
+- project cancelled
+- project completed
+- deadline approaching
+- overdue warning
+
+C. Task / Linguist Events
+- task assigned to linguist
+- linguist accepted task
+- linguist declined task
+- linguist submitted/delivered task
+- revision requested
+- task approved
+- task rejected
+- payment-ready/internal finance flag if relevant
+
+D. System / Admin Events
+- provider/API connection failed
+- provider/API connection restored
+- low balance/quota warning
+- failed job/process
+- health check failure
+- new admin-created rule/config update
+- suspicious login attempt
+- system maintenance announcement
+
+E. Billing / Subscription Events if applicable
+- trial started
+- trial ending soon
+- subscription activated
+- payment failed
+- invoice ready
+- subscription renewed
+- subscription cancelled
+
+==================================================
+4. MESSAGE TYPES TO BUILD
+==================================================
+
+Build:
+1. Transactional emails
+2. In-app notification cards/items
+3. Admin alerts
+4. System banners/announcements
+5. Internal operational alerts
+
+Each type should have its own structure and sending logic.
+
+==================================================
+5. TEMPLATE SYSTEM
+==================================================
+
+Build a reusable template engine.
+
+Each notification template should have:
+- template name
+- event key
+- channel
+- audience/recipient type
+- subject line (for email)
+- title
+- body
+- CTA label
+- CTA URL
+- priority
+- language
+- active/inactive toggle
+- fallback template
+- version
+- notes
+
+Dynamic variables must be supported, such as:
+- {{user_name}}
+- {{workspace_name}}
+- {{project_name}}
+- {{project_id}}
+- {{task_name}}
+- {{task_id}}
+- {{source_language}}
+- {{target_language}}
+- {{deadline}}
+- {{status}}
+- {{linguist_name}}
+- {{client_name}}
+- {{login_url}}
+- {{dashboard_url}}
+- {{action_url}}
+- {{support_email}}
+
+Use a safe variable rendering system with validation so broken templates do not send malformed messages.
+
+==================================================
+6. ADMIN TEMPLATE MANAGEMENT
+==================================================
+
+Build an admin panel section for:
+System Admin > Notifications
+
+Allow admins to:
+- create templates
+- edit templates
+- duplicate templates
+- activate/deactivate templates
+- preview templates with sample data
+- test-send templates
+- filter by event/channel/language/status
+- manage fallback templates
+- view version history
+- see where each template is used
+
+Do not make templates hardcoded only in code.
+They should be manageable from admin UI, with seeded defaults.
+
+==================================================
+7. RECIPIENT LOGIC
+==================================================
+
+Build a recipient rules layer.
+
+The system must decide who gets notified based on event + role + relationship to the record.
+
+Examples:
+- user registered -> send welcome email to that user
+- project created -> notify project owner, assigned PM, optionally admin
+- task assigned -> notify linguist
+- linguist delivered task -> notify PM/project owner/client depending on workflow
+- deadline approaching -> notify responsible owner + assigned linguist if relevant
+- provider failure -> notify system admins only
+
+Support recipient types such as:
+- initiating user
+- affected user
+- project owner
+- workspace admin
+- linguist
+- assigned PM/operator
+- finance/admin
+- all system admins
+- custom email list for internal alerts
+
+==================================================
+8. USER NOTIFICATION PREFERENCES
+==================================================
+
+Build user-level notification preferences.
+
+Each user should be able to control:
+- email on/off for selected events
+- in-app on/off for selected events
+- admin/system alerts if permitted
+- digest vs immediate for non-critical notifications where relevant
+
+Important:
+Critical transactional or security notifications may override preferences where appropriate.
+
+==================================================
+9. EMAIL DESIGN REQUIREMENTS
+==================================================
+
+Build professional HTML email templates.
+
+Requirements:
+- responsive email layout
+- clean enterprise branding
+- logo/header section
+- title
+- message body
+- clear CTA button
+- secondary plain link fallback
+- footer with support/contact info
+- consistent style system
+- dark text on light background for readability
+- avoid overdesigned marketing look for operational emails
+
+Also generate plain-text fallback versions for every email.
+
+Templates should look polished and trustworthy.
+
+==================================================
+10. IN-APP NOTIFICATION SYSTEM
+==================================================
+
+Build in-app notifications including:
+- notification bell/dropdown
+- unread count
+- notifications list page
+- read/unread state
+- mark all as read
+- click-through to related entity
+- severity/priority tags
+- timestamps
+- actor/source label
+- event type icon/tag
+
+Examples:
+- “Project Alpha was created successfully”
+- “Task T-104 has been delivered by Ahmed”
+- “Your password was changed”
+- “API provider connection failed”
+
+==================================================
+11. DELIVERY LOGGING
+==================================================
+
+Every notification attempt must be logged.
+
+Track:
+- event key
+- recipient
+- channel
+- template used
+- rendered content snapshot or safe reference
+- delivery status
+- sent_at
+- failed_at
+- retry_count
+- error message
+- triggered_by
+- related entity type/id
+
+Build an admin log viewer for notification history.
+
+==================================================
+12. FAILURE HANDLING & RETRIES
+==================================================
+
+Add robust handling for failures:
+- email provider timeout
+- invalid recipient address
+- missing template
+- missing variable
+- provider unavailable
+- duplicate send prevention where needed
+
+Build retry logic for transient failures.
+Log permanent failures clearly.
+Prevent silent notification loss.
+
+==================================================
+13. BUSINESS LOGIC CONNECTION
+==================================================
+
+The notification system must be connected to real application actions.
+
+Examples:
+- after successful user registration -> fire welcome flow
+- after project creation committed to DB -> fire project-created notification
+- after task delivery saved in DB -> fire linguist-delivered notification
+- after task status changes -> evaluate relevant trigger
+- after failed provider health check -> fire admin alert
+
+Important:
+Do not send notifications before the underlying database transaction or business action is successfully completed.
+
+Use event-driven architecture where possible:
+- domain events
+- event listeners/handlers
+- queue-based processing if appropriate
+
+==================================================
+14. SUGGESTED ARCHITECTURE
+==================================================
+
+Create services/modules such as:
+- NotificationService
+- TemplateService
+- RecipientResolverService
+- NotificationPreferenceService
+- EmailDeliveryService
+- InAppNotificationService
+- NotificationLogService
+- NotificationEventHandler
+- AdminNotificationController
+
+Use a scalable event-based design, not scattered manual send calls everywhere.
+
+==================================================
+15. DATABASE MODELS
+==================================================
+
+Create suitable tables/models such as:
+
+NotificationTemplate
+- id
+- name
+- event_key
+- channel
+- audience_type
+- subject
+- title
+- body
+- cta_label
+- cta_url
+- language
+- is_active
+- version
+- fallback_template_id
+- created_at
+- updated_at
+
+NotificationEvent
+- id
+- event_key
+- entity_type
+- entity_id
+- triggered_by
+- payload_json
+- created_at
+
+NotificationDelivery
+- id
+- event_id
+- template_id
+- recipient_user_id nullable
+- recipient_email nullable
+- channel
+- rendered_subject
+- rendered_body
+- status
+- retry_count
+- error_message
+- sent_at
+- failed_at
+- created_at
+
+InAppNotification
+- id
+- user_id
+- title
+- body
+- link_url
+- event_key
+- priority
+- is_read
+- created_at
+- read_at
+
+UserNotificationPreference
+- id
+- user_id
+- event_key
+- email_enabled
+- in_app_enabled
+- digest_mode
+- created_at
+- updated_at
+
+==================================================
+16. REQUIRED SEEDED DEFAULT TEMPLATES
+==================================================
+
+Create seeded templates at minimum for:
+
+- Welcome email after registration
+- Email verification
+- Password reset
+- Workspace invitation
+- Project created confirmation
+- Project assigned
+- Task assigned to linguist
+- Linguist delivery received
+- Revision requested
+- Task approved
+- Deadline reminder
+- Overdue alert
+- Admin provider failure alert
+- Trial ending soon
+- Payment failed
+
+==================================================
+17. CONTENT TONE
+==================================================
+
+Messages should be:
+- clear
+- professional
+- concise
+- helpful
+- action-oriented
+
+Avoid robotic or overly generic wording.
+
+Use different tone by notification type:
+- onboarding/welcome = friendly and warm
+- operational/task updates = clear and direct
+- admin/system alerts = concise and urgent
+- billing = polite and explicit
+- security = serious and reassuring
+
+==================================================
+18. TESTING REQUIREMENTS
+==================================================
+
+After building, verify the system by testing:
+- event fires correctly
+- correct recipients selected
+- correct template selected
+- variables render correctly
+- email/in-app records created
+- preferences respected
+- failures logged
+- retries work
+- click-through links valid
+- duplicate sends prevented where necessary
+
+Generate a notification QA report covering:
+- event tested
+- expected result
+- actual result
+- pass/fail
+- fixes applied
+
+==================================================
+19. IMPORTANT QUALITY RULES
+==================================================
+
+Do not create fake notifications that only appear in UI without backend logic.
+Do not build save buttons that do not persist templates.
+Do not hardcode everything into frontend components.
+Do not send notifications without logs.
+Do not ignore user preferences except for critical/security cases.
+Do not trigger notifications before the core business action succeeds.
+
+==================================================
+20. FINAL DELIVERABLE
+==================================================
+
+Deliver:
+1. full notification system architecture
+2. backend event handling
+3. email templates
+4. in-app notifications
+5. admin template management UI
+6. user preferences UI
+7. delivery logs
+8. retry/failure handling
+9. seeded default templates
+10. tests and QA report
+
+The result must answer this operational question:
+“When an important event happens in the system, who gets notified, through which channel, with what message, and can we prove it was delivered or failed?”

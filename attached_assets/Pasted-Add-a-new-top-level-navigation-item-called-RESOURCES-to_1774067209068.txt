@@ -1,0 +1,613 @@
+Add a new top-level navigation item called RESOURCES to the website.
+
+The Resources section should not be a generic blog only. It should be a structured knowledge, education, and enablement hub for different audiences using the platform.
+
+Goal:
+Help visitors and users understand the product, workflows, integrations, AI/LLM setup, CMS integrations, file support, system credits, routing logic, and best practices based on their role and use case.
+
+Important:
+The content of the Resources hub must be manageable through the System Admin Panel.
+Do not hardcode all content only in frontend code.
+Admins must be able to create, edit, organize, publish, unpublish, and expand resource content without needing code changes.
+
+Also important:
+Do not treat this as a UI-only website feature.
+This must be a real CMS-backed, admin-managed, operational Resources system with working data models, admin CRUD, frontend rendering, search/filter logic, and real runtime behavior.
+
+==================================================
+1. NAVIGATION
+==================================================
+
+Add Resources as a main menu item in the top navigation.
+
+Desktop:
+- Resources should open as a mega dropdown similar in quality and style to the Services/Product dropdowns.
+
+Mobile:
+- Resources should expand as a nested section in the mobile menu.
+
+==================================================
+2. RESOURCE SECTION STRUCTURE
+==================================================
+
+Build Resources around content pillars, not only article format.
+
+Create the following categories:
+
+A. By Role
+- Customers
+- Agencies
+- Linguists
+- Admins / IT Teams
+
+B. Product Guides
+- Getting Started
+- Project Workflows
+- Linguist Workflows
+- Localization Assets
+- Notifications
+- Admin Configuration
+- Credits & Usage
+- CMS & Content Connectors
+
+C. AI & LLMs
+- Supported LLMs
+- Model Routing
+- BYOK
+- AI + Human Workflow
+- Language Pair Guidance
+- Subject-Matter Guidance
+- How the system chooses the right LLM
+- Credits vs BYOK usage
+
+D. Integrations
+- LLM Providers
+- CMS Integrations
+- Storage Integrations
+- API / Webhook Integrations
+- File Format Support
+
+E. Help Center
+- FAQ
+- Troubleshooting
+- Security & Permissions
+- Billing
+- Credits
+- File Support
+
+==================================================
+3. MAIN RESOURCES LANDING PAGE
+==================================================
+
+Create a Resources landing page that acts as a hub.
+
+The page should include:
+- hero section
+- search bar
+- featured resource categories
+- cards for By Role, Integrations, AI & LLMs, CMS Integrations, Help Center, File Formats, and Product Guides
+- featured guides/articles
+- CTA to contact sales or start free
+
+This page should feel like a product knowledge hub, not a blog archive.
+
+==================================================
+4. ROLE-BASED RESOURCE HUBS
+==================================================
+
+Create dedicated hub pages for:
+- Customers
+- Agencies
+- Linguists
+- Admins / IT Teams
+
+Each role page should contain:
+- overview of how that role uses the platform
+- top FAQs for that role
+- recommended guides
+- related features
+- best practices
+- role-specific workflows
+- CTA
+
+Examples:
+Customers:
+- creating projects
+- using AI vs human review
+- using glossary/TM
+- credits vs BYOK
+- approvals and delivery
+
+Agencies:
+- client workspaces
+- asset isolation
+- project delivery across multiple clients
+- PM and linguist coordination
+- credit tracking by client/workspace
+
+Linguists:
+- task inbox
+- review and delivery
+- using assets
+- revisions and communication
+
+Admins:
+- provider setup
+- routing rules
+- user roles
+- notification templates
+- health checks
+- CMS connectors
+- system credits and usage controls
+
+==================================================
+5. CMS INTEGRATIONS SECTION
+==================================================
+
+Create a dedicated CMS Integrations resource area.
+
+Suggested integration pages/cards:
+- WordPress
+- Contentful
+- Strapi
+- Sanity
+- Shopify
+- Webflow
+- Adobe Experience Manager if relevant
+- Custom API / Webhook CMS integration
+
+Each CMS integration page should explain:
+- what the integration is
+- what content can be pulled or pushed
+- whether it supports import, export, sync, or webhook automation
+- setup steps
+- permissions/security considerations
+- supported content types
+- localization workflow example
+- FAQs
+- limitations
+
+Also explain use cases such as:
+- translate website pages
+- sync multilingual blog content
+- localize product content
+- send translated content back to CMS
+- use workflow approval before publishing
+
+==================================================
+6. AI & LLM SECTION
+==================================================
+
+Create a resource area for AI / LLM education.
+
+Suggested pages:
+- How model routing works
+- When to use AI only vs AI + human review
+- Best models by use case
+- Language pair guidance
+- Long-document handling
+- Low-resource language considerations
+- BYOK explained
+- How the system chooses the right LLM for specific content
+- Credits vs BYOK explained
+
+This section should help users trust and understand the product’s AI capabilities.
+
+==================================================
+7. HOW SYSTEM CREDITS WORK
+==================================================
+
+Create a dedicated resource page or guide explaining system credits.
+
+This page should clearly explain:
+- what credits are
+- when credits are consumed
+- difference between platform credits and BYOK
+- whether credits are consumed by AI translation only or also by OCR / advanced processing / premium models if applicable
+- how usage is measured
+- how workspaces or agencies may monitor credit usage
+- whether different providers/models cost different amounts
+- how credits are estimated before running a job
+- what happens when credits run low or are exhausted
+- quota warnings and controls
+- admin controls for credit limits if supported
+
+If the platform supports multiple usage models, explain:
+- BYOK: customer uses their own API keys and may avoid platform AI credits
+- Platform Credits: customer uses platform-managed providers and credits are deducted accordingly
+- Hybrid Model: some projects use BYOK, others use platform credits
+
+==================================================
+8. HOW THE SYSTEM DECIDES WHICH LLM TO USE
+==================================================
+
+Create a dedicated resource page that explains how the system selects the right LLM for specific content.
+
+This page should clearly explain that model selection may depend on factors such as:
+- source language
+- target language
+- language pair
+- subject matter/domain
+- content type
+- long document vs short document
+- table-heavy vs plain text
+- low-resource language
+- customer plan / workspace settings
+- quality vs speed vs cost preference
+- BYOK availability
+- admin routing rules
+- provider/model health and fallback status
+- required features such as JSON mode, long context, glossary handling, terminology control, or style guidance
+
+Explain possible routing examples like:
+- legal and technical content -> higher reasoning / terminology-focused models
+- marketing and creative content -> models better at tone and nuance
+- long reports / books -> long-context models
+- Arabic / CJK / low-resource languages -> routing based on configured strengths and approved models
+- if primary model is unavailable -> fallback chain applies
+
+Important:
+Do not present this as marketing-only copy.
+It should reflect real routing logic supported by the platform.
+
+==================================================
+9. FILE FORMAT SUPPORT SECTION
+==================================================
+
+Create a dedicated file formats resource area.
+
+Suggested pages:
+- PDF support
+- Word / DOCX
+- XLIFF
+- Excel / PowerPoint if supported
+- OCR / scanned files
+- output formats and limitations
+
+Each page should explain:
+- what is supported
+- how processing works
+- limitations
+- review recommendations
+- best practices
+
+==================================================
+10. FAQ / HELP CENTER
+==================================================
+
+Create a structured FAQ/help center area by category:
+- account & access
+- projects
+- linguists
+- AI and routing
+- CMS integrations
+- credits & billing
+- localization assets
+- notifications
+- security
+- troubleshooting
+
+Support expandable FAQ items and clean category pages.
+
+==================================================
+11. CONTENT MUST BE ADMIN-MANAGED
+==================================================
+
+This is a critical requirement.
+
+Build the Resources section as a CMS-manageable content system inside the System Admin Panel.
+
+Create a new admin area such as:
+System Admin > Resources
+
+Admins must be able to:
+
+A. Manage categories
+- create category
+- edit category
+- reorder category
+- hide/show category
+- delete/archive category
+
+B. Manage resource pages/articles/FAQ items
+- create new content piece
+- edit existing content
+- duplicate content
+- save draft
+- publish/unpublish
+- archive content
+- assign content to one or multiple categories
+- assign content to one or multiple audiences (Customer / Agency / Linguist / Admin)
+- add featured flag
+- add SEO title/meta description
+- control URL slug
+- reorder content in hub pages
+
+C. Manage FAQ items
+- add FAQ question
+- add answer
+- assign to category
+- reorder FAQs
+- publish/unpublish
+
+D. Manage featured content on landing pages
+- choose featured guides
+- choose featured FAQs
+- choose featured integrations
+
+E. Search and filtering
+- search content in admin panel
+- filter by status, category, role, type, published/unpublished
+
+==================================================
+12. CONTENT MODEL / CMS REQUIREMENTS
+==================================================
+
+Design a flexible content model so resources are not hardcoded.
+
+Suggested content types:
+- Resource Hub Page
+- Guide / Article
+- FAQ Item
+- Integration Page
+- CMS Integration Page
+- File Format Page
+- Role-Based Help Page
+- Credits Guide
+- LLM Routing Guide
+
+Suggested fields:
+- title
+- subtitle
+- slug
+- content body
+- summary/excerpt
+- content type
+- audience type
+- category
+- tags
+- featured image/icon
+- featured flag
+- SEO title
+- meta description
+- publish status
+- author / editor
+- created at
+- updated at
+- sort order
+
+For FAQ items:
+- question
+- answer
+- category
+- audience
+- sort order
+- publish status
+
+==================================================
+13. EDITOR EXPERIENCE IN ADMIN PANEL
+==================================================
+
+Build a content editor in admin panel that allows admins to:
+- add headings
+- paragraphs
+- bullet lists
+- links
+- cards/feature blocks if possible
+- CTA buttons
+- FAQ blocks
+- related links
+- embedded images/icons if supported
+
+The editor should be practical and easy to maintain.
+A rich text editor or block-based editor is preferred.
+
+==================================================
+14. FRONTEND RENDERING RULE
+==================================================
+
+The Resources pages on the public site must read from the managed content in the admin system.
+
+Do not create static pages that cannot be updated from admin.
+Do not require developers to edit code just to update resource content.
+
+All resource pages, hubs, FAQs, featured sections, CMS integration pages, credits pages, and LLM-routing explanation pages should pull from the CMS/content data source.
+
+==================================================
+15. INTERNAL LINKING
+==================================================
+
+Allow admins to define related content and internal linking between:
+- role pages
+- guides
+- integrations
+- CMS integration pages
+- file format pages
+- FAQs
+
+Also support “Related resources” blocks on the frontend.
+
+==================================================
+16. SEO / URL MANAGEMENT
+==================================================
+
+Admins should be able to manage:
+- page title
+- meta description
+- clean URL slug
+- publish status
+- featured content
+- optional canonical settings if needed later
+
+==================================================
+17. REAL IMPLEMENTATION REQUIREMENT
+==================================================
+
+This must not be UI-only.
+
+Do not only build navigation and page layouts.
+Build real working features including:
+- database models
+- admin CRUD for resources
+- publish/unpublish workflow
+- frontend data fetching
+- category filtering
+- audience filtering
+- search
+- content rendering
+- related content logic
+- slug routing
+- SEO fields
+- featured content logic
+
+==================================================
+18. TESTING AND PRODUCTION-READINESS REQUIREMENT
+==================================================
+
+This is critical.
+
+Do not test only UI appearance.
+You must test and validate the full operational behavior of this feature like a production-ready system.
+
+Test:
+- resource content creation
+- editing
+- draft saving
+- publishing
+- unpublishing
+- category assignment
+- audience assignment
+- SEO field persistence
+- slug generation and routing
+- featured content rendering
+- FAQ rendering
+- search and filtering
+- mobile and desktop nav behavior
+- admin permission restrictions
+- related content logic
+- frontend/backend/database connection
+- API correctness
+- error handling
+- empty states
+- invalid input handling
+
+Also verify:
+- content created in admin actually appears on public site
+- unpublished content does not appear publicly
+- edited content updates correctly
+- deleted/archived content behaves correctly
+- role/category filters work correctly
+- CMS integration pages and credits/routing guides are manageable from admin
+
+Create and run:
+- unit tests
+- integration tests
+- end-to-end tests
+- permission tests
+- regression tests for any bugs fixed
+
+==================================================
+19. DEEP AUDIT / QA REPORT
+==================================================
+
+After implementation, generate a structured report covering:
+
+1. Executive Summary
+- feature health score
+- readiness assessment
+- summary judgment
+
+2. Nav & Frontend Audit
+- Resources in desktop nav
+- Resources in mobile nav
+- mega dropdown behavior
+- landing page rendering
+- responsiveness
+
+3. Admin CMS Audit
+- category CRUD
+- content CRUD
+- FAQ CRUD
+- publish/unpublish behavior
+- SEO fields
+- slug control
+- audience assignment
+- featured logic
+
+4. Public Content Audit
+- pages render from admin-managed data
+- filtering/search works
+- related content works
+- CMS integration pages present
+- credits page present
+- LLM routing explanation page present
+
+5. Business Logic Audit
+- content persistence verified
+- admin changes affect public frontend
+- permissions enforced
+- no hardcoded-only dependency
+- content lifecycle works end to end
+
+6. Test Inventory
+- tests created
+- tests run
+- pass/fail counts
+- regression tests added
+
+7. Fake / Incomplete Functionality Report
+List any:
+- dead buttons
+- content that only exists in UI mock form
+- pages not connected to admin-managed data
+- SEO fields not actually used
+- filters not actually working
+- draft/publish states not respected
+
+8. Remaining Risks
+- issue
+- severity
+- impact
+- recommendation
+
+9. Final Verdict
+Choose one:
+- READY FOR RELEASE
+- READY WITH CAUTIONS
+- NOT READY
+
+Explain exactly why.
+
+==================================================
+20. QUALITY RULES
+==================================================
+
+Do not make Resources a thin blog page only.
+Do not create empty placeholders.
+Do not make all category pages identical.
+Do not hardcode all content into frontend code.
+Do not test only layout/UI.
+Verify real backend, database, permissions, content lifecycle, and runtime behavior.
+
+==================================================
+21. FINAL DELIVERABLE
+==================================================
+
+Deliver:
+- Resources in top nav
+- mega dropdown
+- resources landing page
+- role-based hubs
+- CMS integrations hub
+- AI & LLM hub
+- credits guide
+- file format support hub
+- FAQ/help center structure
+- CMS-backed content model
+- System Admin > Resources management area
+- content editor for admins
+- ability to create/edit/publish/unpublish resource content
+- reusable page templates
+- responsive behavior
+- internal linking across all resource pages
+- deep audit report proving real operational behavior

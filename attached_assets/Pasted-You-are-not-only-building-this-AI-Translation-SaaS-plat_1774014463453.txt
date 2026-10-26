@@ -1,0 +1,902 @@
+You are not only building this AI Translation SaaS platform — you are also responsible for proving that it is genuinely operational as a real business system, not just visually complete or partially simulated.
+
+From this point onward, act as:
+- principal software engineer
+- SaaS systems architect
+- localization systems architect
+- QA architect
+- integration auditor
+- business logic validator
+- security reviewer
+- performance reviewer
+- release manager
+
+Your mission:
+ perform a deep operational audit of the entire platform and generate a structured report showing:
+- what is truly working
+- what is partially working
+- what is simulated
+- what is broken
+- what is risky
+- what must be fixed before this can be considered production-ready
+
+==================================================
+PLATFORM CONTEXT
+==================================================
+
+This SaaS is a modern translation operations platform where businesses can manage multilingual content using:
+- AI / LLMs
+- in-house linguists
+- external linguists / vendors
+- localization assets such as glossaries, translation memories, style guides, term bases, and reference files
+- structured workflows for project creation, assignment, delivery, review, revision, notifications, approvals, and reporting
+
+The platform may support:
+- direct clients
+- enterprise workspaces
+- agencies managing their own clients
+- sub-workspaces / client workspaces under an agency
+- admins, PMs, linguists, reviewers, and client users
+
+This is not just a website.
+This is an operational SaaS system.
+
+==================================================
+CORE RULE
+==================================================
+
+Do not assume a feature works because:
+- code exists
+- a page renders
+- a button is visible
+- a form submits
+- an endpoint returns success
+- a dashboard shows data
+- a toast appears
+- a settings page saves visually
+
+A feature is only considered complete if its real behavior is verified across:
+- frontend
+- backend
+- database
+- permissions
+- integrations
+- side effects
+- notifications
+- failure handling
+- business outcome
+
+Do not simulate completeness.
+Prove it through execution, tracing, testing, and validation.
+
+==================================================
+PHASE 1 — FULL PLATFORM SYSTEM MAP
+==================================================
+
+Inspect the whole application and create a complete internal system map covering:
+
+1. Frontend areas
+- homepage / marketing pages if relevant
+- auth pages
+- dashboard
+- workspace pages
+- project pages
+- task pages
+- linguist pages
+- asset management pages
+- notification pages
+- agency/client workspace screens
+- admin configuration screens
+- reporting/analytics pages
+- billing/subscription pages if present
+
+2. Backend
+- routes
+- controllers
+- services
+- validators
+- middleware
+- queue workers
+- background jobs
+- event handlers
+- cron/scheduled processes
+- webhook handlers
+- provider integrations
+- routing engine services
+
+3. Database
+- users
+- roles
+- workspaces
+- agency/client relationships
+- projects
+- tasks
+- file records
+- asset tables
+- provider config tables
+- notification tables
+- audit logs
+- billing records if any
+- health/status tables
+- job/status tracking tables
+
+4. Integrations
+- LLM providers
+- email
+- in-app notifications
+- storage/file upload
+- auth
+- billing
+- analytics
+- webhooks
+- search
+- queue/worker infrastructure
+
+5. Operational logic
+- RBAC / permissions
+- tenant/workspace isolation
+- project lifecycle logic
+- AI routing logic
+- human assignment logic
+- delivery/review/revision logic
+- notification triggers
+- asset usage in runtime
+- admin overrides
+- audit trail behavior
+- retry/fallback logic
+- health checks
+
+Create a full validation checklist from this map.
+
+==================================================
+PHASE 2 — BUSINESS LOGIC TRUTH TABLE
+==================================================
+
+For every important feature/workflow, create a Business Logic Truth Table with:
+
+- feature/workflow name
+- business purpose
+- actor/persona
+- trigger
+- preconditions
+- inputs
+- expected outputs
+- business rules
+- frontend components involved
+- backend services involved
+- database entities involved
+- integrations involved
+- permission requirements
+- side effects
+- success conditions
+- failure conditions
+- rollback behavior if relevant
+- edge cases
+- hidden dependencies
+
+Cover at minimum these modules:
+
+A. Authentication & Identity
+- signup
+- login
+- password reset
+- invitation flow
+- email verification
+- role assignment
+- session handling
+
+B. Workspaces & Multi-Tenancy
+- create workspace
+- enterprise workspace logic
+- agency workspace logic
+- agency sub-client workspace logic
+- tenant isolation
+- user membership rules
+- client visibility boundaries
+
+C. Projects & Requests
+- create project
+- upload source files
+- choose source/target languages
+- domain/subject-matter selection
+- turnaround/deadline settings
+- project status progression
+- cancellation/archive behavior
+
+D. LLM Routing
+- provider configuration
+- model catalog
+- routing rules by language pair
+- routing rules by subject matter
+- long-document routing
+- low-resource language routing
+- Arabic/RTL handling if relevant
+- fallback chain execution
+- provider failure handling
+- disabled/deprecated model behavior
+
+E. Linguist Workflows
+- linguist onboarding or assignment visibility
+- task assignment
+- task acceptance/decline
+- delivery submission
+- review/revision cycle
+- approval/rejection
+- workload visibility if present
+- handoff between AI and human stages
+
+F. Localization Assets
+- glossary creation/import
+- translation memory creation/import
+- style guide management
+- asset attachment to workspace/project
+- runtime usage of glossary/TM/style guide
+- asset versioning if present
+- asset visibility by workspace/client
+
+G. Notifications & Messaging
+- welcome email
+- project created
+- project assigned
+- task assigned
+- delivery notification
+- revision request
+- deadline reminder
+- system/admin alerts
+- in-app notifications
+- user notification preferences
+- delivery logs
+
+H. Admin Configuration
+- provider/API key setup
+- model activation/deactivation
+- routing rule configuration
+- notification template configuration
+- user/role management
+- health/status configuration
+- audit logs
+- global settings that affect runtime behavior
+
+I. Reporting / Analytics
+- project status reports
+- linguist performance if present
+- usage metrics
+- provider/model usage
+- notification logs
+- admin health dashboard
+
+J. Billing / Subscription if present
+- plan restrictions
+- trial rules
+- usage gating
+- invoice/payment events
+- workspace feature access rules
+
+==================================================
+PHASE 3 — END-TO-END FEATURE TRACE
+==================================================
+
+For each major workflow, trace the real execution path:
+
+User action
+-> frontend event
+-> request/API call
+-> auth/middleware
+-> validation
+-> backend service logic
+-> database read/write
+-> external integration if any
+-> queue/event processing if any
+-> notifications/logs/audit entries
+-> response handling
+-> UI update
+-> final business result
+
+Do this specifically for critical SaaS workflows such as:
+
+- user registers and is onboarded
+- admin creates workspace
+- agency creates a client sub-workspace
+- client creates a translation project
+- files are uploaded and attached correctly
+- routing engine selects AI model/provider
+- assets are applied to translation workflow
+- linguist is assigned
+- linguist accepts or declines
+- linguist delivers task
+- reviewer requests revision
+- task is approved
+- notifications are triggered
+- admin changes provider/routing configuration
+- runtime behavior changes accordingly
+- audit trail records the critical action
+
+Verify actual behavior, not just code structure.
+
+==================================================
+PHASE 4 — LLM ROUTING AUDIT
+==================================================
+
+This is a critical module.
+
+Audit the LLM routing system deeply.
+
+Verify:
+- providers are really configured and stored securely
+- models are really registered and selectable
+- routing rules are actually evaluated at runtime
+- language pair logic works
+- domain/subject-matter logic works
+- long-document logic works
+- low-resource language logic works
+- regional/CJK/Arabic/RTL logic works if configured
+- disabled models are blocked
+- deprecated/retired models are excluded appropriately
+- fallback chains actually execute
+- unhealthy/unavailable providers are skipped
+- cost/latency/quality preferences affect selection if designed
+- simulation console matches actual runtime logic
+- explanation object/reporting is accurate
+- admin rule changes really affect future routing decisions
+
+Detect and flag:
+- static routing pretending to be dynamic
+- rules saved in UI but unused in runtime
+- fallback chains defined but never executed
+- provider/model settings that do not affect actual jobs
+- simulated test console results disconnected from real engine
+
+==================================================
+PHASE 5 — LINGUIST WORKFLOW AUDIT
+==================================================
+
+Audit the full human workflow.
+
+Verify:
+- linguists see only permitted tasks
+- internal vs external linguists are separated correctly if applicable
+- assignment actually persists
+- accept/decline works
+- deadlines/statuses update correctly
+- delivery submission persists
+- review/revision cycle works
+- approvals/rejections change final state correctly
+- notifications are sent to the right parties
+- client/project owner sees the right status
+- audit logs capture actions
+- duplicate delivery / race conditions are handled
+
+Detect:
+- UI-only assignment
+- status changes without DB persistence
+- deliveries not visible downstream
+- revisions not linked properly
+- role leakage between client and linguist sides
+
+==================================================
+PHASE 6 — LOCALIZATION ASSETS AUDIT
+==================================================
+
+Audit the asset system deeply.
+
+Verify:
+- glossaries can be created/imported/edited
+- translation memories can be created/imported/attached if present
+- style guides can be saved and assigned
+- assets are scoped correctly by workspace/client/project
+- attached assets actually affect translation runtime behavior
+- correct asset versions are used
+- unauthorized users cannot access other clients’ assets
+- assets remain linked correctly across project lifecycle
+
+Detect:
+- asset pages that only store metadata but are not used at runtime
+- glossary/TM/style guide settings that do not influence prompts, routing, or translation output
+- fake asset usage claims in UI
+- missing attachment logic
+- broken client/agency asset isolation
+
+==================================================
+PHASE 7 — NOTIFICATION & EMAIL AUDIT
+==================================================
+
+Audit the notification system deeply.
+
+Verify:
+- event triggers fire at the correct time
+- correct recipients are selected
+- email templates render correctly
+- in-app notifications are created
+- user preferences are respected where appropriate
+- critical/system alerts override preferences only where intended
+- delivery logs are written
+- retry/failure handling works
+- CTA links are valid
+- notifications are not sent before core DB transaction succeeds
+- admin template changes affect future sends
+
+Test at minimum:
+- welcome email
+- invite email
+- project created notification
+- task assigned notification
+- linguist delivery notification
+- revision requested notification
+- admin alert on provider/health failure
+- deadline reminder if present
+
+Detect:
+- fake in-app notifications with no backend trigger
+- sent UI state without actual email attempt
+- saved templates not used at runtime
+- missing delivery logs
+- duplicate sends
+- event triggered too early or too late
+
+==================================================
+PHASE 8 — AGENCY / CLIENT WORKSPACE AUDIT
+==================================================
+
+Audit agency model / sub-account logic deeply.
+
+Verify:
+- agency can create/manage client workspaces if designed
+- sub-client data is isolated correctly
+- agency-level users can access only allowed child workspaces
+- client users cannot access sibling workspaces
+- assets/projects/tasks/notifications are scoped correctly
+- reporting respects tenant boundaries
+- agency branding or white-label config works if present
+- billing/workspace plan logic respects agency structure if present
+
+Detect:
+- cross-tenant data leakage
+- parent-child workspace confusion
+- broken permission inheritance
+- filters/search exposing other clients’ data
+- shared assets visible to wrong tenant
+
+==================================================
+PHASE 9 — ADMIN CONFIGURATION AUDIT
+==================================================
+
+Audit admin configuration deeply.
+
+Verify:
+- provider/API key settings persist securely
+- routing rules save and affect runtime behavior
+- model activation/deactivation affects operations
+- notification template edits affect future sends
+- user/role changes affect permissions immediately or as designed
+- global settings affect runtime behavior
+- audit logs record critical config changes
+- health dashboards reflect real system state
+
+Detect:
+- config pages that save visually but do nothing
+- admin toggles disconnected from runtime
+- health status panels using static/demo data
+- rule changes not applied in job execution
+- audit logs not firing for admin actions
+
+==================================================
+PHASE 10 — DETECT SIMULATED / FAKE FUNCTIONALITY
+==================================================
+
+Aggressively search for anything that looks complete but is not truly operational.
+
+Detect and flag:
+- dead buttons
+- forms that do not persist
+- dashboards using static/mock/demo data
+- settings that do not influence runtime behavior
+- API routes returning success without real effect
+- background jobs defined but never processed
+- queue logic present but inactive
+- provider tests that do not really test the connection
+- notifications shown but not sent
+- assets displayed but unused
+- routing rules stored but not executed
+- reports built from fake data
+- hidden TODO logic behind polished UI
+- missing environment dependencies
+- silent failures
+- placeholder integrations
+
+List each case explicitly in the final report.
+
+==================================================
+PHASE 11 — TEST SUITE REQUIREMENT
+==================================================
+
+Generate and run a serious test suite covering:
+
+1. Unit tests
+- routing logic
+- provider selection logic
+- fallback logic
+- glossary/asset application logic
+- notification rendering
+- recipient resolution
+- permission helpers
+- validators
+- utility functions
+- business rule helpers
+
+2. Integration tests
+- route -> controller -> DB
+- auth -> middleware -> endpoint
+- project creation -> persistence
+- assignment -> notification -> audit trail
+- asset attach -> runtime usage
+- admin config -> runtime effect
+- provider config -> routing engine
+- notification event -> delivery log
+
+3. End-to-end tests
+- user signup/login
+- workspace creation
+- project creation with file upload
+- AI routing execution
+- linguist assignment
+- linguist delivery
+- revision cycle
+- notification appearance
+- admin configuration update
+- agency/client workspace flows
+
+4. API tests
+- request validation
+- response correctness
+- malformed input
+- permission restrictions
+- missing field behavior
+
+5. Database integrity tests
+- tenant isolation
+- relation integrity
+- unique constraints
+- asset/project/task linkage
+- archive/delete behavior
+- transaction safety
+
+6. RBAC / permission tests
+- guest restrictions
+- client user restrictions
+- linguist restrictions
+- reviewer restrictions
+- agency admin boundaries
+- system admin powers
+- sub-workspace visibility controls
+
+7. Failure-path tests
+- provider unavailable
+- model disabled
+- bad API credentials
+- upload failure
+- email delivery failure
+- queue failure
+- duplicate submission
+- concurrent actions
+- missing asset references
+- project/task status mismatch
+
+8. Regression tests
+- any fixed bug must receive a regression test
+
+Do not only test happy paths.
+
+==================================================
+PHASE 12 — BUSINESS OUTCOME VALIDATION
+==================================================
+
+For every major workflow, validate the real business result.
+
+Examples:
+- when a project is created, it truly exists, is visible to the right users, and enters the correct workflow state
+- when a routing rule selects a model, the actual runtime uses that model/provider
+- when assets are attached, they actually influence translation behavior where designed
+- when a linguist delivers, the status truly changes and the right parties are informed
+- when admin disables a provider/model, jobs stop using it
+- when notification template is edited, future notifications use the new version
+- when agency creates a client workspace, that client’s data is isolated correctly
+
+Validate business outcomes, not just HTTP responses.
+
+==================================================
+PHASE 13 — SECURITY / TENANCY / OPERATIONAL REVIEW
+==================================================
+
+Perform a practical engineering audit for:
+
+- authentication correctness
+- authorization / RBAC correctness
+- tenant/workspace isolation
+- agency/client/sub-client isolation
+- secure handling of API keys and secrets
+- input validation
+- file upload safety
+- rate limiting where needed
+- error leakage
+- unsafe destructive actions
+- admin privilege boundaries
+- auditability of critical actions
+- secure runtime config handling
+
+This does not need to be a full pentest, but it must be meaningful and honest.
+
+==================================================
+PHASE 14 — PERFORMANCE / DATABASE / RELIABILITY AUDIT
+==================================================
+
+Inspect and validate real-world risks, including:
+
+- slow endpoints
+- high-latency workflows
+- inefficient project/task queries
+- N+1 query issues
+- missing indexes
+- poor pagination/filtering/search design
+- connection pool exhaustion
+- deadlock/lock risks
+- race conditions in assignment/delivery/status changes
+- duplicate processing
+- queue reliability
+- memory leaks or memory pressure
+- large file handling issues
+- repeated provider/API calls that should be optimized
+- caching opportunities
+- notification burst issues
+- reporting query bottlenecks
+
+Measure where possible.
+Estimate and flag where direct measurement is not possible.
+
+==================================================
+PHASE 15 — BUG FIX LOOP
+==================================================
+
+If any issue is found:
+1. identify root cause
+2. classify severity
+3. fix it where possible
+4. rerun affected tests
+5. rerun regression tests
+6. update the audit report
+
+Do not stop at discovery.
+Fix and validate.
+
+If something cannot be fixed automatically, explain:
+- exact issue
+- why it remains
+- impact
+- recommended next step
+
+==================================================
+PHASE 16 — HONEST SYSTEM CLASSIFICATION
+==================================================
+
+At the end, classify the current platform honestly as one of:
+- Prototype
+- MVP
+- Pre-production
+- Production-ready candidate
+
+Do not overstate maturity.
+Only classify based on validated evidence.
+
+==================================================
+PHASE 17 — FINAL DEEP AUDIT REPORT
+==================================================
+
+Generate a structured final report with these sections:
+
+1. Executive Summary
+- overall health score /100
+- system classification
+- release recommendation
+- summary judgment
+
+2. Architecture Coverage
+- frontend coverage
+- backend coverage
+- database coverage
+- integration coverage
+- routing engine coverage
+- linguist workflow coverage
+- localization asset coverage
+- notification coverage
+- agency/client workspace coverage
+- admin configuration coverage
+
+3. Feature Validation Matrix
+For each major feature:
+- feature name
+- status: PASS / FAIL / PARTIAL
+- frontend connected: yes/no
+- backend connected: yes/no
+- database connected: yes/no
+- business rules validated: yes/no
+- permissions validated: yes/no
+- side effects validated: yes/no
+- edge cases tested: yes/no
+- failure path tested: yes/no
+- notes
+
+4. Workflow Validation Matrix
+For each workflow:
+- workflow name
+- personas tested
+- expected business result
+- actual result
+- status
+- issues found
+- fixes applied
+- retest result
+
+5. LLM Routing Audit
+- provider config status
+- model catalog status
+- routing rule validity
+- runtime rule execution status
+- fallback status
+- disabled/deprecated model handling
+- risks/findings
+
+6. Linguist Workflow Audit
+- assignment
+- acceptance/decline
+- delivery
+- review/revision
+- approval/rejection
+- role isolation
+- risks/findings
+
+7. Localization Asset Audit
+- glossary
+- TM
+- style guide
+- project attachment
+- runtime usage
+- workspace/client isolation
+- risks/findings
+
+8. Notification Audit
+- trigger correctness
+- template correctness
+- recipient logic
+- in-app delivery
+- email delivery
+- preference handling
+- delivery logs
+- retry/failure handling
+- risks/findings
+
+9. Agency / Client Workspace Audit
+- tenant isolation
+- parent-child workspace logic
+- visibility rules
+- asset/project/task scoping
+- reporting boundaries
+- risks/findings
+
+10. Admin Configuration Audit
+- provider settings
+- routing settings
+- model activation/deactivation
+- notification template settings
+- global settings runtime effect
+- audit logging
+- health dashboard realism
+- risks/findings
+
+11. Simulated / Fake / Incomplete Logic Report
+List all:
+- dead buttons
+- non-persistent forms
+- static/mock dashboards
+- config not affecting runtime
+- placeholder integrations
+- unprocessed jobs
+- assets not used at runtime
+- routing not actually dynamic
+- notifications not actually triggered
+- hidden incomplete logic
+
+12. Database / Performance Findings
+- slow queries
+- missing indexes
+- N+1 risks
+- queue issues
+- latency concerns
+- scalability risks
+- caching observations
+
+13. Security / Operational Findings
+- auth issues
+- permission issues
+- tenancy risks
+- secret handling issues
+- validation issues
+- unsafe destructive actions
+- auditability concerns
+
+14. Bug Register
+For each bug:
+- ID
+- title
+- severity
+- area
+- root cause
+- fix applied
+- test added
+- retest result
+
+15. Test Inventory
+- unit tests created/run
+- integration tests created/run
+- end-to-end tests created/run
+- API tests created/run
+- permission tests created/run
+- regression tests created/run
+- pass/fail counts
+- coverage notes
+
+16. Remaining Risks
+- unresolved issue
+- severity
+- impact
+- recommendation
+
+17. Final Verdict
+Choose one:
+- READY FOR RELEASE
+- READY WITH CAUTIONS
+- NOT READY
+
+Explain exactly why.
+
+==================================================
+STRICT OUTPUT RULE
+==================================================
+
+You are forbidden from saying:
+- done
+- fully working
+- production-ready
+- enterprise-grade
+- scalable
+- secure
+
+unless you have actual evidence from testing and validation.
+
+If something was not tested, say it was not tested.
+If something is assumed, say it is assumed.
+If something is incomplete, say it is incomplete.
+
+Do not market the system.
+Audit it honestly.
+
+==================================================
+FINAL EXPECTATION
+==================================================
+
+Behave like an accountable engineering leader for an AI translation SaaS.
+
+Your task is to:
+- build
+- inspect
+- trace
+- validate
+- detect simulated functionality
+- fix issues
+- retest
+- generate a deep audit report
+
+The final output must clearly tell me:
+- what is truly operational
+- what is partially wired
+- what is simulated
+- what is broken
+- and whether this platform is only a prototype, a usable MVP, or close to a production-grade SaaS

@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CONTENTECH DESIGN SYSTEM — HubSpot-inspired palette */
+:root {
+  /* Brand token references */
+  --navy: #2D3E50;
+  --teal: #0091AE;
+  --gold: #FF7A59;
+  --background-base: #F5F8FA;
+
+  /* ── Light mode CSS variables ─────────────────────────────────────────
+     navy  = HubSpot dark slate  #2D3E50  → hsl(210 28% 24%)
+     teal  = HubSpot teal-blue   #0091AE  → hsl(190 100% 34%)
+     gold  = HubSpot orange      #FF7A59  → hsl(12 100% 67%)
+  ──────────────────────────────────────────────────────────────────── */
+  --background: 210 33% 97%;          /* #F5F8FA */
+  --foreground: 210 28% 28%;          /* #33475B */
+  --border: 210 27% 84%;              /* #CBD6E2 */
+  --card: 0 0% 100%;
+  --card-foreground: 210 28% 28%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 28% 28%;
+  --primary: 12 100% 67%;             /* #FF7A59 orange */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 190 100% 34%;          /* #0091AE teal */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 210 33% 96%;
+  --muted-foreground: 210 28% 44%;    /* #516F90 */
+  --accent: 12 100% 67%;              /* #FF7A59 orange */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 210 27% 84%;               /* #CBD6E2 */
+  --ring: 12 100% 67%;                /* #FF7A59 */
+  --chart-1: 12 100% 67%;             /* orange */
+  --chart-2: 190 100% 34%;            /* teal */
+  --chart-3: 210 28% 24%;             /* navy */
+  --chart-4: 262 83% 58%;             /* purple */
+  --chart-5: 173 100% 37%;            /* green */
+  --radius: 0.5rem;
+
+  --font-sans: "Inter", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+.dark {
+  --background: 210 28% 10%;
+  --foreground: 210 33% 97%;
+  --border: 210 28% 20%;
+  --card: 210 28% 14%;
+  --card-foreground: 210 33% 97%;
+  --popover: 210 28% 14%;
+  --popover-foreground: 210 33% 97%;
+  --primary: 12 100% 67%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 190 100% 40%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 210 28% 18%;
+  --muted-foreground: 210 23% 68%;    /* #99ACC2 */
+  --accent: 12 100% 67%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 210 28% 20%;
+  --ring: 12 100% 67%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer utilities {
+  /* Scrollbar styling */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Gradient text utilities */
+  .gradient-navy-teal {
+    background: linear-gradient(135deg, #2D3E50 0%, #0091AE 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-navy-gold {
+    background: linear-gradient(135deg, #2D3E50 0%, #FF7A59 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* HubSpot-inspired gradient (teal → orange) */
+  .gradient-hubspot {
+    background: linear-gradient(135deg, #0091AE 0%, #FF7A59 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Shadows */
+  .shadow-navy {
+    box-shadow: 0 4px 24px rgba(45, 62, 80, 0.15);
+  }
+
+  .shadow-teal {
+    box-shadow: 0 4px 24px rgba(0, 145, 174, 0.25);
+  }
+
+  .shadow-gold {
+    box-shadow: 0 4px 24px rgba(255, 122, 89, 0.25);
+  }
+
+  /* Glass effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  /* Prose overrides */
+  .prose-navy {
+    --tw-prose-headings: #2D3E50;
+    --tw-prose-links: #0091AE;
+  }
+}
+
+/* Mega menu animation */
+@keyframes megaMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mega-menu-enter {
+  animation: megaMenuIn 0.2s ease-out;
+}
+
+/* Chat bubble typing animation */
+@keyframes typingDot {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+.typing-dot:nth-child(1) { animation: typingDot 1s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation: typingDot 1s ease-in-out 0.2s infinite; }
+.typing-dot:nth-child(3) { animation: typingDot 1s ease-in-out 0.4s infinite; }

@@ -1,0 +1,10 @@
+flask
+gunicorn
+pdfminer.six
+pdfplumber
+pymupdf
+ocrmypdf
+arabic-reshaper
+python-bidi
+pillow
+fpdf2

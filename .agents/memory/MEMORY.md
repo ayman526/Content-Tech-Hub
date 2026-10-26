@@ -1,0 +1,1 @@
+- [SegmentIssue source field](segment-issue-source.md) — quality-engine issues use source="quality-engine" and null reviewerId; human issues use source="human"

@@ -1,0 +1,88 @@
+Fix and improve our SaaS Admin Panel so it controls ALL website content and pricing everywhere consistently.
+
+Context:
+We have a SaaS platform built with Next.js + TypeScript + Prisma + Postgres + Stripe.
+We already added new homepage sections/elements in the UI, but those elements are NOT visible in the Admin Panel “Site Content” area, so admins cannot edit them.
+Also, when we change plan prices in the Admin Panel, the updated prices do NOT propagate consistently across the website (Homepage, Pricing page, Contact page, and Subscription/Checkout screens).
+
+GOALS
+1) Admin “Site Content” must show ALL editable website elements and sections (including newly added ones).
+2) Plan price changes in Admin must update EVERYWHERE:
+   - Homepage pricing preview block
+   - Pricing page
+   - Contact page pricing references (if any)
+   - Subscription/Checkout section
+   - Any component that renders pricing in any page
+3) Ensure a single source of truth for content and pricing, with no hardcoded values in the frontend.
+
+REQUIREMENTS
+
+A) CONTENT MANAGEMENT (Site Content)
+- Create a content schema in DB that supports:
+  - Pages: Home, Pricing, Contact (and any future pages)
+  - Sections per page (Hero, Logos, Value props, How it works, Features, Use cases, Testimonials, FAQ, CTA, Footer, etc.)
+  - Elements inside sections (headings, paragraphs, CTAs, links, images, cards, badges, counters, logos, etc.)
+- Admin panel must:
+  - List all pages and their sections
+  - Allow editing text, links, CTA labels/URLs, images, ordering of sections
+  - Allow enabling/disabling a section
+  - Support repeatable items (cards, testimonials, FAQs, logo lists)
+  - Include “Preview changes” and “Publish” (or save as draft then publish)
+- IMPORTANT:
+  - Any new UI section added by developers must automatically appear in Admin as editable content.
+  - Use a consistent “section key” system (e.g., home.hero, home.features, pricing.plans) so the UI reads from DB by key.
+  - If content missing in DB, fallback to defaults and also auto-create missing keys (seed) so Admin can edit.
+
+B) PRICING & SUBSCRIPTIONS (Single source of truth)
+- Create a Pricing/Plans schema in DB:
+  - Plan: id, key (FREE, PRO, etc.), name, priceMonthly, currency, featuresJSON, limitsJSON, isActive, stripePriceId (monthly)
+- Admin panel must allow:
+  - Changing plan display name
+  - Changing plan price
+  - Editing plan features and limits
+  - Toggling plan visibility
+- When Admin changes a plan price:
+  - The change must apply consistently across ALL site pages and subscription UI components.
+  - Remove all hardcoded plan prices from the frontend.
+  - Frontend must always fetch plan data from a single endpoint (e.g., GET /api/plans).
+- Stripe rule:
+  - Stripe prices are immutable; changing plan price requires creating a NEW Stripe Price.
+  - Implement logic:
+    1) On plan price update in Admin, create a new Stripe Price for that plan’s Product.
+    2) Save new stripePriceId to DB.
+    3) New subscriptions use the latest stripePriceId.
+    4) Existing subscriptions: either keep old price OR offer “upgrade to new price” flow (build a toggle in Admin: apply to new subscriptions only vs migrate existing).
+  - Update subscription page/checkout to use DB stripePriceId only.
+
+C) CACHING + SYNC
+- Ensure updates show immediately on site:
+  - If using Next.js caching/ISR, add revalidation hooks or disable caching for pricing/content endpoints.
+  - Add an Admin “Publish” action that triggers revalidation for impacted pages (home, pricing, contact).
+- Add audit log for changes:
+  - ChangeLog: adminId, entityType (CONTENT/PLAN), entityId, before, after, timestamp
+
+D) UI COMPONENT INTEGRATION
+- Refactor site components:
+  - Pricing cards on homepage and pricing page must use the same shared component and same data source.
+  - Contact page plan references must pull from plans API too.
+  - Footer/CTA content should pull from content API keys.
+
+DELIVERABLES
+- Prisma migrations for content + plans schemas
+- Admin panel screens:
+  - Site Content editor (pages/sections/elements)
+  - Plans editor (pricing/features/limits + Stripe price regeneration)
+  - Publish + Revalidate controls
+- API routes:
+  - GET/PUT content by key/page
+  - GET/PUT plans
+  - Stripe integration for price creation + webhook handling
+- Remove all hardcoded pricing/content from UI
+- README explaining:
+  - How to add new sections so they appear in Admin automatically
+  - How pricing edits work with Stripe Price IDs
+  - How revalidation/publish works
+
+Acceptance criteria:
+- Any homepage/pricing/contact UI text or section can be edited from Admin without code changes.
+- Updating plan price in Admin updates pricing display everywhere and affects new subscriptions correctly via Stripe.

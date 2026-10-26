@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "tkvpe0cun_HCjmzmCdOgX"
+uri = "file://SPEC.md"
+type = "text"
+title = "Contentech — Product & System Specification"
+
+[[outputs]]
+id = "Bx5pH0gqBg7cHSjApLizo"
+uri = "file://.local/diagnostics/juqi2s_source_vs_layout.jpg"
+type = "image"
+title = "Project JUQI2S — source vs current 'Layout-preserving PDF' output (page 1)"

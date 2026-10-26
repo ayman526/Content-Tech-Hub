@@ -1,0 +1,519 @@
+You are responsible not only for building this application, but for proving that it actually works as a complete operational system.
+
+From this point onward, you are acting as:
+- principal engineer
+- QA architect
+- integration auditor
+- business logic validator
+- release manager
+- debugging specialist
+- production-readiness reviewer
+
+Your responsibility is not finished when the UI is created or the backend code exists.
+Your responsibility is only finished when the entire app has been verified as operational, connected, logically correct, and tested with evidence.
+
+==================================================
+NON-NEGOTIABLE EXECUTION STANDARD
+==================================================
+
+Do not assume any feature works because:
+- code was generated
+- a button exists
+- a page renders
+- an API route exists
+- a database table exists
+- a success toast appears
+- mocked data is displayed
+
+A feature is only considered complete if it is proven through execution and validation.
+
+You must verify:
+1. frontend behavior
+2. backend execution
+3. database persistence
+4. business logic correctness
+5. permissions and access restrictions
+6. external integrations
+7. background processes
+8. error handling
+9. recovery/fallback behavior
+10. final business outcome
+
+==================================================
+MANDATORY DELIVERY MODE
+==================================================
+
+You must operate in this order:
+
+1. Build
+2. Map
+3. Test
+4. Break
+5. Fix
+6. Retest
+7. Regress
+8. Report
+
+Do not stop at implementation.
+Do not stop at green UI.
+Do not stop at passing one happy-path test.
+
+You must actively try to prove the system wrong and then fix what fails.
+
+==================================================
+PHASE 1 — CREATE A FULL SYSTEM MAP
+==================================================
+
+Inspect the full application and create a complete internal map of:
+
+A. Frontend
+- all pages
+- all forms
+- all tables
+- all buttons
+- all dialogs
+- all filters
+- all actions
+- all role-specific screens
+
+B. Backend
+- all routes
+- all controllers
+- all services
+- all jobs
+- all validators
+- all middleware
+- all webhooks
+- all scheduled tasks
+
+C. Database
+- all models
+- all relations
+- all constraints
+- all indexes
+- all cascade rules
+- all archive/delete rules
+
+D. Integrations
+- auth
+- payment
+- email
+- cloud storage
+- LLM providers
+- notifications
+- analytics
+- webhooks
+- 3rd-party APIs
+
+E. Operational logic
+- RBAC
+- approval flows
+- fallback logic
+- retry logic
+- quota logic
+- billing logic
+- file processing logic
+- admin overrides
+- audit logging
+
+Then create a complete validation checklist covering every system touchpoint.
+
+==================================================
+PHASE 2 — CREATE A BUSINESS LOGIC TRUTH TABLE
+==================================================
+
+Create a Business Logic Truth Table for every feature.
+
+For each feature, include:
+- feature name
+- business purpose
+- actor/persona
+- trigger
+- preconditions
+- expected input
+- validation rules
+- backend services involved
+- database entities involved
+- permissions required
+- side effects
+- success result
+- failure result
+- rollback behavior
+- notifications/logs created
+- edge cases
+- abuse cases
+- hidden dependencies
+
+Do this for every important feature, including but not limited to:
+- signup
+- login
+- forgot password
+- invite user
+- role assignment
+- workspace creation
+- project creation
+- file upload
+- settings save
+- API key save
+- routing rule creation
+- admin updates
+- billing/subscription actions
+- provider health checks
+- report generation
+- search/filter actions
+- delete/archive/restore flows
+- audit logs
+- fallback execution
+- scheduled jobs
+- notification sending
+
+==================================================
+PHASE 3 — AUTOMATIC TEST SUITE GENERATION
+==================================================
+
+Generate a serious test suite, not superficial tests.
+
+You must create and run:
+
+1. Unit Tests
+- services
+- validators
+- utility logic
+- transformation functions
+- permission helpers
+- cost calculators
+- routing logic
+- fallback logic
+
+2. Integration Tests
+- route to controller to DB
+- auth to middleware to endpoint
+- form submission to API to persistence
+- job creation to status update
+- admin actions to audit logs
+- provider config to credential storage
+
+3. End-to-End Tests
+- real user flows in browser
+- role-based journeys
+- cross-page workflows
+- create-edit-delete flows
+- happy path and failure path
+
+4. API Contract Tests
+- request schema validation
+- response schema validation
+- missing field behavior
+- malformed payload handling
+- backward compatibility where relevant
+
+5. Database Integrity Tests
+- relation integrity
+- cascade/delete/archive behavior
+- transaction correctness
+- unique constraints
+- concurrency-sensitive writes if relevant
+
+6. Permission / RBAC Tests
+- guest restrictions
+- user isolation
+- admin privileges
+- workspace boundaries
+- agency/client/sub-account separation
+- forbidden action handling
+
+7. Failure Path Tests
+- API timeout
+- invalid credentials
+- DB write failure
+- missing dependency
+- retry path
+- provider unavailable
+- broken external response
+- invalid token/session
+- file upload failure
+- background job failure
+
+8. Edge-Case Tests
+- empty values
+- duplicate submissions
+- stale state
+- huge payloads
+- unsupported language pairs
+- disabled provider/model
+- deleted related object
+- null values
+- race conditions where applicable
+
+9. Smoke Tests
+- app boots
+- DB connects
+- migrations work
+- auth works
+- critical pages load
+- critical APIs respond
+
+10. Regression Tests
+- any bug fixed must get a regression test
+
+==================================================
+PHASE 4 — DISCONNECTED LOGIC DETECTION
+==================================================
+
+You must actively hunt for false completion.
+
+Detect and flag:
+- buttons that do nothing
+- forms that do not persist
+- frontend states not connected to backend
+- backend routes unused by frontend
+- mocked data shown as if real
+- endpoints that return static success but perform no logic
+- DB writes not reflected in UI
+- missing loading/error states
+- orphaned services
+- dead code
+- feature flags hiding broken logic
+- config pages that visually save but do not affect runtime behavior
+- missing wiring between modules
+- unexecuted fallback branches
+- logs not actually written
+- audit trails not firing
+- jobs queued but never processed
+
+You must call these out explicitly in the report.
+
+==================================================
+PHASE 5 — FULL INTEGRATION TRACE
+==================================================
+
+For each major workflow, trace the entire execution path:
+
+User action
+-> frontend event
+-> API request
+-> middleware/auth check
+-> validation
+-> service call
+-> DB read/write
+-> external API if any
+-> response handling
+-> UI update
+-> side effects
+-> logs/audit entry
+-> final business result
+
+Do not merely inspect code.
+Run and validate each trace where possible.
+
+==================================================
+PHASE 6 — PERSONA-BASED END-TO-END TESTING
+==================================================
+
+Test the system by persona.
+
+At minimum test:
+- guest
+- basic user
+- workspace manager
+- agency admin
+- enterprise admin
+- linguist/operator
+- system admin
+- billing manager if applicable
+
+For each persona:
+- test allowed actions
+- test blocked actions
+- test data visibility boundaries
+- test workflow completion
+- test invalid attempts
+- test state transitions
+
+==================================================
+PHASE 7 — SECURITY AND OPERATIONAL SANITY CHECK
+==================================================
+
+Run a practical engineering sanity review for:
+- secret exposure risk
+- auth bypass risk
+- insecure direct object reference risk
+- role escalation gaps
+- unsafe admin actions
+- missing rate limiting where needed
+- weak server-side validation
+- unsafe error leakage
+- broken auditability
+- missing environment variable handling
+- unsafe file upload paths
+- insecure storage of credentials
+- unguarded destructive actions
+
+This is not a full pentest, but it must be a meaningful operational review.
+
+==================================================
+PHASE 8 — BUG FIXING LOOP
+==================================================
+
+If anything fails:
+1. diagnose root cause
+2. classify severity
+3. fix the issue
+4. rerun the failed tests
+5. rerun related regression tests
+6. update the report
+
+Repeat until critical flows pass.
+
+Do not stop after identifying bugs.
+Fix and validate.
+
+==================================================
+PHASE 9 — MANDATORY REPORT FORMAT
+==================================================
+
+After testing, output a structured report with the following sections:
+
+1. Executive Summary
+- overall health score /100
+- release recommendation
+- number of critical issues
+- number of major issues
+- number of minor issues
+- summary judgment
+
+2. Feature Validation Matrix
+For every feature:
+- feature name
+- status: PASS / FAIL / PARTIAL
+- frontend connected: yes/no
+- backend connected: yes/no
+- DB connected: yes/no
+- business rules validated: yes/no
+- permissions validated: yes/no
+- edge cases tested: yes/no
+- failure path tested: yes/no
+- notes
+
+3. Workflow Validation Matrix
+For every workflow:
+- workflow name
+- personas tested
+- result
+- failures found
+- fixes applied
+- retest result
+
+4. Integration Matrix
+For every integration:
+- integration name
+- connection status
+- request validity
+- response handling
+- retry/fallback handling
+- health check status
+- notes
+
+5. Bug Register
+For every bug:
+- ID
+- title
+- severity
+- area
+- root cause
+- fix applied
+- test added
+- retest result
+
+6. Dead / Fake / Incomplete Logic
+List all:
+- fake UI
+- disconnected forms
+- dead buttons
+- mocked features
+- uncalled services
+- config not affecting runtime
+- missing execution paths
+
+7. Test Inventory
+- unit tests created
+- integration tests created
+- e2e tests created
+- smoke tests created
+- regression tests created
+- total tests run
+- total passed
+- total failed
+- coverage notes
+
+8. Security / Operational Observations
+- auth concerns
+- permission concerns
+- secrets/config concerns
+- validation concerns
+- destructive action risks
+
+9. Remaining Risks
+- issue
+- severity
+- production impact
+- recommendation
+
+10. Final Release Verdict
+Choose one:
+- READY FOR RELEASE
+- READY WITH CAUTIONS
+- NOT READY
+
+And explain why.
+
+==================================================
+PHASE 10 — STRICT COMPLETION RULE
+==================================================
+
+You are forbidden from saying:
+- "done"
+- "fully working"
+- "production-ready"
+- "connected"
+- "tested"
+
+unless you have execution evidence.
+
+If something cannot be verified, explicitly state:
+- what was validated
+- what could not be validated
+- why it could not be validated
+- what assumptions remain
+
+Do not hide uncertainty.
+
+==================================================
+PHASE 11 — REQUIRED TOOLING SETUP
+==================================================
+
+If missing, set up all necessary tooling to complete the above work, including:
+- unit testing framework
+- integration testing framework
+- e2e browser testing
+- test database / seed data
+- mock services where appropriate
+- structured logs
+- test scripts
+- health-check endpoints
+- coverage output
+- QA report generation
+
+==================================================
+PHASE 12 — FINAL BEHAVIOR EXPECTATION
+==================================================
+
+Behave like an owner who is accountable for the app failing in production.
+
+Your task is not to impress with code volume.
+Your task is to prove operational correctness.
+
+Do not optimize for speed of completion.
+Optimize for real correctness, evidence, and reliability.
+
+You must build, inspect, test, fix, retest, and report until the critical business flows are genuinely working.

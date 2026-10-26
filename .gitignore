@@ -1,0 +1,18 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Next.js — exclude entire build output to prevent stale artifact conflicts
+.next/
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
+# User-uploaded files — should never be committed to the repo
+storage/
+
+# PDF processor downloaded fonts
+services/pdf-processor/fonts/

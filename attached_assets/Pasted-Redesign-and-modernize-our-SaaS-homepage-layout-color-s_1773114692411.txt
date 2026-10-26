@@ -1,0 +1,121 @@
+Redesign and modernize our SaaS homepage (layout + color system) with inspiration from HubSpot’s website style and UX patterns (clean, confident, conversion-focused, generous whitespace, modern gradients), but do not copy HubSpot. Create a distinct design that feels original.
+
+Brand & vibe
+
+Feel: modern, trustworthy, friendly, enterprise-ready
+
+Style: clean typography, strong hierarchy, spacious sections, subtle shadows, soft gradients, minimal clutter
+
+Must look hand-crafted, not AI-generated
+
+What to deliver
+
+Updated homepage layout (wireframe + final UI)
+
+New color palette + usage rules (primary/secondary, neutrals, backgrounds, borders, CTA colors, gradient rules)
+
+Typography + spacing system (font pairing or single family, sizes, line-heights)
+
+Component styles: buttons, nav, cards, badges, form inputs, hero illustration style, section dividers
+
+Mobile + desktop responsive variants
+
+Homepage structure (required)
+
+Top navigation
+
+Left: logo
+
+Center: product dropdown, solutions, pricing, resources
+
+Right: “Sign in”, “Start free trial” CTA (primary)
+
+Optional: language switcher
+
+Hero section
+
+Headline (big), short subhead, 2 CTAs (Primary: Start free trial, Secondary: Book a demo)
+
+Add trust signals: “Used by…” logos row
+
+Include a product screenshot mock inside a rounded container, with subtle gradient background
+
+Value props (3–4 cards)
+
+Each card: icon + title + 1–2 lines + link
+
+How it works (3 steps)
+
+Step layout with small illustrations or UI snippets
+
+Feature deep-dive sections (2–3)
+
+Split layout (text left, visual right), alternating
+
+Include metrics/benefits highlights (speed, accuracy, ROI)
+
+Use cases / Solutions
+
+Tabs or card grid (e.g., eCommerce, Corporate, Support, Marketing)
+
+Testimonials + results
+
+Quote cards + measurable outcomes
+
+Add case study CTA
+
+Pricing preview block
+
+3 tier teaser + “View pricing” CTA
+
+FAQ
+
+Accordion style, clean and readable
+
+Final CTA band
+
+Strong headline + 1 primary CTA, gradient background
+
+Footer
+
+Multi-column links + social + legal + contact
+
+Color direction (inspired by HubSpot, not copied)
+
+Use a bright, modern palette with:
+
+clean white / off-white backgrounds
+
+soft neutral grays for text and borders
+
+one bold primary brand color for CTAs
+
+one accent color for highlights/badges
+
+subtle gradients for hero + CTA band
+
+Ensure AA contrast for text and CTAs.
+
+Visual style requirements
+
+Rounded corners (12–20px), subtle shadows, minimal outlines
+
+Icons: simple line icons or duotone
+
+Illustrations: minimal, modern, optional abstract shapes
+
+Buttons: clear hierarchy (primary solid, secondary outline/ghost)
+
+Avoid heavy patterns, avoid overly saturated backgrounds
+
+Output format
+
+Provide the design as:
+
+Desktop layout (1440px) and mobile layout (375px)
+
+Color palette with HEX values and usage notes
+
+Component mini-styleguide (buttons, cards, headings, sections)
+
+A short explanation of why the new layout improves conversions

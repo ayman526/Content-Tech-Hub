@@ -1,0 +1,136 @@
+Build a full Contentful integration for our AI + Human Hybrid Translation SaaS.
+
+STACK
+- Our SaaS: Next.js (App Router) + TypeScript + Prisma + Postgres
+- Auth: NextAuth (email/password or SSO-ready)
+- Background jobs: use a queue (BullMQ + Redis) or a simple DB job runner
+- Contentful: use Contentful Management API + Delivery API
+- Webhooks: implement inbound webhook endpoints for Contentful events
+- Security: encrypt stored tokens at rest
+
+GOAL
+“Translate where the content lives”:
+Users can connect a Contentful space, pick content types/fields + locales, send entries to translation, run AI draft + human review workflow in our platform, then push translations back into Contentful in the correct localized fields as draft or published content.
+
+FEATURES
+
+1) CONNECT CONTENTFUL (OAuth or Personal Access Token)
+- In client dashboard: Integrations → Contentful → “Connect”
+- Allow connection by:
+  A) OAuth (preferred) OR
+  B) Contentful Personal Access Token (PAT) (MVP acceptable)
+- Store per-organization:
+  - contentfulSpaceId
+  - contentfulEnvironmentId (default: “master”)
+  - token (encrypted)
+  - connectedByUserId
+  - connectedAt
+
+2) CONTENTFUL SETTINGS UI
+Add a settings screen with:
+- Select Space + Environment
+- Choose Source locale (e.g., en-US)
+- Choose Target locales (multi-select)
+- Select Content Types (multi-select)
+- Field mapping rules:
+  - For each content type, choose which fields are translatable
+  - Support field types: Symbol, Text, RichText
+  - For RichText: preserve nodes structure; translate only text nodes; keep embedded entries/assets unchanged
+- Exclusion rules:
+  - Do NOT translate slugs by default (optional toggle)
+  - Do NOT translate IDs, URLs, code blocks, placeholders
+  - Protected patterns: {variable}, {{var}}, %s, <tags>, [link], etc.
+- Workflow routing rules per content type:
+  - AI only
+  - AI + Human review
+  - Human translation only
+- “Delivery mode” toggle:
+  - Push back as Draft only
+  - Push back and Publish (only if user has permission)
+
+3) CONTENT DISCOVERY + SELECTION
+Create “Contentful Content Browser” page:
+- List entries by content type with pagination, search, and filters
+- Show entry title, updatedAt, current locales completeness
+- Multi-select entries → “Send to translation”
+- Before sending: show estimate:
+  - word count per field
+  - estimated credits by workflow
+  - TM/glossary selection
+
+4) TRANSLATION JOB CREATION
+On “Send to translation”:
+- Create a Job in our DB with:
+  - orgId
+  - connector = CONTENTFUL
+  - contentfulEntryId, contentTypeId, environmentId, spaceId
+  - sourceLocale, targetLocale(s)
+  - selectedFields
+  - extractedSourcePayload (store snapshot)
+  - wordCount + credits estimate
+  - workflow type (AI / AI+Human / Human)
+  - status (Queued → AI Draft → Human Review → Ready → Delivered)
+- For each target locale, create a “JobLocale” record to track progress separately.
+
+5) SYNC BACK TO CONTENTFUL (PUSH)
+When a locale is completed:
+- Update the Contentful entry fields in the target locale:
+  - Write translated values to the same field IDs (localized)
+  - Preserve RichText JSON structure; replace only text nodes
+- Mark status in our system “Delivered to Contentful”
+- If Delivery mode = Publish:
+  - Publish entry in Contentful for that locale (respect Contentful publish API)
+- Maintain audit log of what was changed.
+
+6) WEBHOOKS (PULL / AUTO-UPDATE)
+Implement webhook endpoint(s):
+- Receive Contentful events (entry publish/update)
+- If an entry changes in source locale, detect changed fields and:
+  - show “Out of date” badge in our UI
+  - optionally auto-create a re-translation job for changed fields only
+- Avoid loops:
+  - If our system pushed changes, don’t re-trigger translation from the webhook (store lastSyncedHash and compare)
+
+7) PERMISSIONS + MULTI-TENANCY
+- Only org owners/admins can connect Contentful and change settings
+- Normal users can request translation if allowed
+- Store connector config per org
+
+8) ERROR HANDLING + RETRIES
+- Gracefully handle Contentful API errors (403 permissions, 404 missing entry, rate limits)
+- Retry background jobs with exponential backoff
+- Log failures with actionable messages:
+  - “Missing permission: content management write”
+  - “Field type not supported: Array”
+  - “Target locale not enabled in Contentful”
+
+DATA MODELS (PRISMA)
+- Organization
+- Integration (id, orgId, type=CONTENTFUL, configJSON, encryptedToken, createdAt)
+- ContentfulMapping (orgId, contentTypeId, translatableFields[], rulesJSON)
+- TranslationJob (id, orgId, connectorType, externalId=entryId, sourceLocale, status, wordCount, workflow, createdAt)
+- TranslationJobLocale (jobId, targetLocale, status, deliveredAt)
+- AuditLog (orgId, actorId, action, entityType, entityId, beforeJSON, afterJSON, createdAt)
+
+UI PAGES
+- Integrations → Contentful (connect/disconnect + status)
+- Contentful Settings (locales, content types, field rules, workflow rules, delivery mode)
+- Content Browser (entries list + send to translation)
+- Job details (progress per locale + push status + errors)
+- Activity log (sync events, deliveries)
+
+DELIVERABLES
+- Working integration with Contentful sandbox space test instructions
+- README with:
+  - how to create PAT or OAuth app
+  - how to configure webhook in Contentful
+  - supported field types and limitations
+  - how RichText is handled safely
+- Seed demo content types + example mapping
+
+IMPORTANT UX
+- “Translate where the content lives”: include a button inside our UI labeled:
+  “Open in Contentful” linking to the entry in Contentful.
+- Show a clear status: Draft/Review/Delivered/Published per target locale.
+
+Build the full implementation end-to-end with clean TypeScript types, and keep all Contentful config in DB (no hardcoding).

@@ -1,0 +1,89 @@
+The app must support PDF translation as a first-class file type, not only Word documents.
+
+Build a real PDF translation pipeline with support for both:
+1. text-based PDFs
+2. scanned/image-based PDFs
+
+Use this architecture:
+
+1. PDF type detection
+- detect whether the uploaded PDF is text-based or scanned/image-based
+
+2. Text-based PDF pipeline
+- use PyMuPDF (pymupdf) as the primary library for PDF parsing
+- extract text blocks, words, page structure, coordinates, and reading order
+- preserve layout metadata for reconstruction
+- support multi-page documents, columns, headers/footers, and structured blocks
+
+3. Scanned PDF pipeline
+- use OCRmyPDF first to add an OCR text layer to scanned PDFs
+- then parse the OCR-processed PDF with PyMuPDF
+- if needed, use pdfplumber as a helper/fallback for difficult structured extraction and tables
+
+4. Structured extraction requirements
+- extract page-by-page content
+- preserve block positions
+- preserve tables where possible
+- preserve paragraph boundaries
+- preserve document structure
+- identify extraction confidence and flag poor-quality pages
+
+5. Translation workflow
+- translate by segment/block, not by dumping the full PDF into one prompt
+- maintain mapping between original block and translated block
+- support glossary, terminology, translation memory, and style guide injection during translation
+- support AI-only mode, AI + human review mode, and human-only review mode
+
+6. Output requirements
+Build at least 3 output options:
+- translated text preview
+- translated DOCX export
+- translated PDF export with best-effort layout preservation
+
+7. Layout preservation
+- rebuild translated PDF page by page using extracted bounding boxes and layout metadata
+- preserve reading order and approximate original formatting as closely as possible
+- where perfect preservation is not possible, fail gracefully and inform the user
+- do not pretend layout preservation is perfect for all PDFs
+
+8. Table handling
+- detect tables and preserve rows/columns where possible
+- use pdfplumber as helper/fallback for table extraction when needed
+- keep table cell mapping during translation
+
+9. UX requirements
+- allow PDF upload in the same project flow as Word files
+- show whether the PDF is text-based or scanned
+- show OCR status
+- show extraction confidence / warnings
+- allow user to choose output format
+- clearly warn when the file is complex and best-effort reconstruction is being used
+
+10. System honesty
+- do not simulate PDF support
+- do not accept PDF upload unless a real backend extraction + translation + output pipeline exists
+- do not show fake success if parsing fails
+- log extraction failures and page-level issues
+
+11. Testing
+Create and run tests for:
+- text-based PDF upload and translation
+- scanned PDF OCR pipeline
+- multi-page PDF handling
+- table extraction
+- layout reconstruction
+- failure cases
+- corrupted PDF handling
+- large PDF handling
+
+12. Final report
+After implementation, produce a PDF support audit report covering:
+- supported PDF types
+- extraction method used
+- OCR support status
+- table support status
+- layout preservation status
+- output formats supported
+- limitations
+- failed test cases
+- pass/fail assessment of real PDF translation readiness

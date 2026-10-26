@@ -1,0 +1,168 @@
+We are repositioning our platform from a "localization/translation" platform to a 
+"multilingual content creation" platform. This requires a terminology rebrand across 
+the entire codebase — UI labels, copy, page titles, navigation items, and descriptions. 
+This is a UI/copy change only. Do NOT rename database columns, Prisma model fields, 
+API route paths, or any backend identifiers — those must stay as-is to avoid breaking 
+changes.
+
+---
+
+## TERMINOLOGY REPLACEMENTS
+
+Apply these find-and-replace rules across all UI-facing text (component JSX, page 
+titles, labels, descriptions, button text, toast messages, empty states, onboarding 
+copy, and any hardcoded strings in .tsx / .ts files):
+
+| Find (exact or contextual) | Replace With |
+|---|---|
+| Linguist (when referring to a person/role) | Content Strategist |
+| Linguists (plural role) | Content Strategists |
+| Internal Linguist | Internal Reviewer |
+| Internal Linguists | Internal Reviewers |
+| Preferred Linguist | Preferred Strategist |
+| Preferred Linguists | Preferred Strategists |
+| System Linguist Pool | Strategist Network |
+| Linguist Pool | Strategist Network |
+| Linguist Studio | Creator Studio |
+| Translation (when used as a noun for the act/service) | Multilingual Content Creation |
+| Translate (verb in UI copy) | Create multilingual content |
+| Localization | Multilingual Content Operations |
+| Localization Assets | Brand Assets |
+| Loc Assets | Brand Assets |
+| Human Translation (workflow label) | Native Creation |
+| Human Revision (workflow label) | Expert Review |
+| AI + Human Revision (workflow label) | AI Draft + Expert Review |
+| Mistranslation (error type label) | Content Accuracy Error |
+| Translators | Content Strategists |
+| Translator | Content Strategist |
+| BYOL / Bring Your Own Linguist | BYOR / Bring Your Own Reviewers |
+| linguist performance (dashboard copy) | strategist performance |
+
+---
+
+## SPECIFIC COMPONENT & PAGE CHANGES
+
+### Navigation / Sidebar (components/dashboard/sidebar.tsx)
+- "Linguists" tab → "Strategists"
+- "Linguist Studio" menu item → "Creator Studio"
+- Any "Localization Assets" link → "Brand Assets"
+
+### Linguists Tab (client dashboard)
+- Tab label: "Linguists" → "Strategists"
+- Sub-tab "Internal Linguists" → "Internal Reviewers"
+- Sub-tab "Preferred Linguists" → "Preferred Strategists"
+- Invite button copy: "Invite Linguist" → "Invite Reviewer"
+- Empty state copy: update any mention of "linguist" or "translator"
+
+### Workflow Type Selector (job creation flow)
+- "Human Translation" option label → "Native Creation"
+  - Description: "A content strategist creates the content from scratch in the 
+    target language. No AI involvement." 
+- "Human Revision" option label → "Expert Review"
+  - Description: "AI generates a first draft. An expert reviewer refines it for 
+    brand accuracy and quality."
+- "AI Only" → keep unchanged
+
+### Progress Tracker (Project Details Page)
+- Stage label "Human Review" → "Expert Review" (if not already)
+- Any mention of "linguist assignment date" → "reviewer assignment date"
+
+### Quality Report / Issue Panel
+- Error type "Mistranslation" → "Content Accuracy"
+- Any label "linguist corrections" → "reviewer corrections"
+
+### Linguist Onboarding Flow (system linguist apply flow)
+- "Sample translation submission" → "Sample content submission"
+- "Language pairs, specializations" — add a new display field label: 
+  "Content Domains" (just the label, no backend change needed)
+
+### Linguist Profile Page
+- Page title: "Linguist Profile" → "Strategist Profile"
+- "Throughput: words processed" → keep, just update section title to 
+  "Strategist Performance"
+
+### Creator Studio (formerly Linguist Studio)
+- Page title and header: "Linguist Studio" → "Creator Studio"
+- Promo page headline (non-subscriber view): update to remove "linguist" 
+  and reframe around content strategists
+- "Manage your own clients and translation jobs" → 
+  "Manage your own clients and multilingual content projects"
+- "Full CAT editor with AI pre-translation" → 
+  "Full content editor with AI draft generation"
+- "Your own Translation Memories and Glossaries" → 
+  "Your own Content Memory and Brand Glossaries"
+- "Join the system linguist pool for extra income" → 
+  "Join the strategist network for extra income"
+
+### Brand Assets Page (formerly Localization Assets)
+- Page title: "Localization Assets" → "Brand Assets"
+- URL path `/portal/studio/assets` — keep as-is (no route change)
+- Section headers on the page: 
+  - "Translation Memories" → "Content Memory" (display label only)
+  - "Glossaries" → "Brand Glossaries"
+  - "Style Guides" → "Style Guides" (no change)
+
+### Style Guide Form
+- Field label "Localization notes" → "Market-specific guidance"
+
+### Admin Panel — System Linguist Pool Management
+- Section title: "System Linguist Pool Management" → 
+  "Strategist Network Management"
+- "Onboard new linguists" → "Onboard new content strategists"
+- "Linguist identity and credentials" → "Strategist identity and credentials"
+- "Per-linguist metrics" → "Per-strategist metrics"
+- "Deactivate or remove linguists from the pool" → 
+  "Deactivate or remove strategists from the network"
+
+### Admin Panel — Job Monitoring
+- "active linguists" → "active strategists"
+- "linguist edits" → "reviewer edits"
+
+### Credit Dashboard / Pricing Labels
+- "human credits" (in UI copy) → "reviewer credits"
+- "Zero human credits are charged when internal linguists handle jobs" → 
+  "No reviewer credits are charged when internal reviewers handle jobs"
+
+### Homepage / Marketing Copy (if managed in CMS or hardcoded)
+- "Translate in Hours, Not Weeks" → "Go multilingual in hours, not weeks"
+- "Expert linguists post-edit for quality" → 
+  "Expert reviewers ensure brand accuracy"
+- "AI translation" (in marketing copy) → "AI content generation"
+- "translation agency" → "content agency"
+- "180+ Languages Covered" → keep as-is
+- "ISO 17100 Certified Workflow" → keep as-is (this is a standard, don't rename)
+
+---
+
+## DO NOT CHANGE (preserve exactly as-is)
+
+- All Prisma model names and field names (e.g., LinguistAssignment, 
+  LinguistProfile, TranslationMemory, TMEntry, GlossaryTerm)
+- All API route paths (e.g., /api/studio/jobs, /api/linguist/*, 
+  /api/tm, /api/glossary)
+- Database column names
+- The term "Translation Memory" or "TM" when used as a technical term 
+  in the CAT editor panels, TM match percentage UI, or TMX file import/export
+- "XLIFF", "TMX", "CAT editor" — these are industry-standard file/tool names
+- "BYOK" — keep as-is
+- Any enum values in the codebase (e.g., TRANSLATOR, REVIEWER role enums) 
+  — only change the display labels, not the underlying values
+- Route URLs and slugs
+
+---
+
+## APPROACH
+
+1. Start with the sidebar and navigation — highest visibility.
+2. Then workflow type selectors in the job creation flow — most strategically 
+   important rename (Human Translation → Native Creation).
+3. Then the Linguists/Strategists tab and sub-tabs.
+4. Then Creator Studio (formerly Linguist Studio).
+5. Then Brand Assets page.
+6. Then admin panel copy.
+7. Finally sweep remaining files for any missed instances of "linguist", 
+   "translator", "localization" in UI-facing strings.
+
+After completing, do a final search across all .tsx files for the strings: 
+"linguist", "translator", "localization", "translation" and flag any remaining 
+instances that appear in user-facing text for review.

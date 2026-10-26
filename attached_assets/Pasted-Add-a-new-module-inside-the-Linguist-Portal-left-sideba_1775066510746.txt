@@ -1,0 +1,570 @@
+Add a new module inside the Linguist Portal left sidebar called:
+
+LINGUIST STUDIO
+
+This must be a real product module, not a placeholder page.
+
+Goal:
+Linguist Studio should allow linguists to use our platform as their own translation management system inside the Linguist Portal. It should let them manage their own clients, create jobs for those clients, attach localization assets, use AI drafting with integrated LLMs if desired, and work through the translation editor — similar in power to the customer portal, but as a separate linguist-owned module with its own logic and experience.
+
+==================================================
+1. CORE PRODUCT MODEL
+==================================================
+
+Linguist Studio is a premium workspace area inside the Linguist Portal where a linguist can:
+
+- create and manage their own private clients
+- create translation jobs for those clients
+- upload source files
+- open jobs in the translation editor
+- manage translation memories, glossaries, and style guides
+- link localization assets to specific clients
+- choose whether a job should use AI draft translation or be fully human
+- revise AI-generated drafts inside the editor
+- operate like a lightweight TMS inside the linguist portal
+
+Important positioning:
+- the linguist owns their client relationships
+- client data is private to the linguist
+- the linguist keeps their revenue
+- the platform takes no cuts and no commission from the linguist’s client work
+- the value is access to world-class tech with very low friction and affordable cost
+
+==================================================
+2. SUBSCRIPTION MODEL
+==================================================
+
+Access to Linguist Studio requires a paid subscription:
+
+- price: $20 per month
+- billing model: monthly subscription
+- feature gating must be real, not UI-only
+
+Subscriber:
+- gets full access to Linguist Studio and all sub-sections
+
+Non-subscriber:
+- should still see Linguist Studio in the left sidebar
+- should still see all Linguist Studio sub-sections listed beneath it
+- but those sub-sections must appear disabled/deemphasized/locked
+- the only active click target should be the main Linguist Studio entry page
+- clicking Linguist Studio should open a promotional / upgrade page explaining the benefits and prompting subscription
+
+Do not hide the feature completely from non-subscribers.
+Show it in a way that drives upgrade.
+
+==================================================
+3. SIDEBAR / NAVIGATION
+==================================================
+
+In the left sidebar of the Linguist Portal, add a new main item:
+
+Linguist Studio
+
+Sub-sections:
+- Overview
+- Clients
+- Jobs
+- Assets
+- Translation Memory
+- Glossaries
+- Style Guides
+- Files
+- Reports / Activity Log
+
+Behavior for subscribers:
+- all sections active and clickable
+
+Behavior for non-subscribers:
+- Linguist Studio main page active
+- all sub-sections visible but disabled/locked/deemphasized
+- clicking locked sub-sections can either do nothing or redirect to the upgrade/promo page
+- visual lock treatment should be clear and premium, not broken-looking
+
+==================================================
+4. NON-SUBSCRIBER PROMO PAGE
+==================================================
+
+When a non-subscriber clicks Linguist Studio, show a polished product-promo page inside the portal.
+
+This page should explain clearly why a linguist should subscribe.
+
+Core messages to communicate:
+- manage your own clients privately
+- create and track your own jobs
+- use AI draft translation or fully human workflows
+- integrate several LLMs to accelerate first drafts
+- revise inside professional translation editors
+- use TM, glossaries, and style guides
+- keep everything under your control
+- no platform commission
+- no revenue cuts
+- low monthly cost
+- own your work, own your clients, own your workflow
+
+Suggested content sections:
+1. Hero section
+2. What Linguist Studio unlocks
+3. AI + human revision workflow
+4. Private client management
+5. Localization assets and editor workflow
+6. Pricing box: $20/month
+7. CTA: Subscribe now / Start using Linguist Studio
+
+Make this page feel like a serious upgrade/product page, not a placeholder.
+
+==================================================
+5. OVERVIEW PAGE FOR SUBSCRIBERS
+==================================================
+
+Create an Overview dashboard for subscribed Linguist Studio users showing:
+- total clients
+- active jobs
+- completed jobs
+- recent files
+- recent activity
+- linked TM/glossary/style guides
+- quick actions:
+  - create client
+  - create job
+  - upload file
+  - open editor
+  - add glossary
+  - add TM
+
+==================================================
+6. CLIENT MANAGEMENT
+==================================================
+
+Build a client/account management module inside Linguist Studio.
+
+The linguist must be able to:
+- create a client
+- edit client details
+- archive client
+- view all jobs for a client
+- link assets to a client
+- store client-specific preferences if needed
+- keep each client’s jobs and assets organized
+
+Suggested client fields:
+- client name
+- contact name
+- contact email
+- company name
+- notes
+- preferred languages
+- default glossary
+- default TM
+- default style guide
+- created date
+- status
+
+Important:
+These are the linguist’s own private clients, not platform customers created through the customer portal.
+
+==================================================
+7. JOB MANAGEMENT
+==================================================
+
+Build a job management module inside Linguist Studio.
+
+The linguist must be able to:
+- create a new job
+- select existing client or create new client
+- upload one or more files
+- define source language
+- define target language
+- define deadline
+- add job notes/instructions
+- attach glossary/TM/style guide
+- save draft
+- submit/open job
+
+Add a required translation method choice at job creation:
+
+A. AI Draft + Human Revision
+- system uses selected/configured LLM(s) to produce a draft translation
+- linguist then reviews and revises the draft in the translation editor
+
+B. Fully Human Translation
+- no AI draft is generated
+- linguist translates from scratch in the editor
+
+Suggested job statuses:
+- Draft
+- In Progress
+- Awaiting Review
+- Delivered
+- Archived
+
+Important:
+The job should belong to the linguist’s studio workspace and to one of the linguist’s clients.
+
+==================================================
+8. LLM INTEGRATION FOR STUDIO JOBS
+==================================================
+
+Linguist Studio must support AI drafting through LLM integrations.
+
+Requirements:
+- allow system support for several LLM providers/models
+- linguist can use AI draft mode for eligible jobs
+- AI draft generation should be connected to real backend logic
+- linguist should later revise inside the translation editor
+- studio jobs should support LLM-driven first draft, then human refinement
+
+Support logic for:
+- provider/model selection if applicable
+- draft generation
+- fallback handling
+- failed generation reporting
+- job-level method tracking (AI draft vs fully human)
+
+Important:
+This should not be fake UI.
+If AI draft is selected, the backend must really generate draft content and load it into the editor.
+
+==================================================
+9. TRANSLATION EDITOR INTEGRATION
+==================================================
+
+This is critical.
+
+The linguist must be able to open uploaded files from a studio job directly inside the translation editor.
+
+Requirements:
+- job file opens in editor
+- editor loads source content
+- if AI Draft + Human Revision was selected, the AI draft is loaded for revision
+- if Fully Human Translation was selected, source content opens without AI draft
+- linked glossary is available
+- linked TM is available
+- linked style guide is available
+- save progress works
+- job status updates correctly
+- delivery/finalization flow works
+
+The editor integration must be real, not a fake link.
+
+==================================================
+10. LOCALIZATION ASSETS
+==================================================
+
+Linguist Studio must support asset management.
+
+The linguist must be able to manage:
+- translation memories
+- glossaries
+- style guides
+- reference files if supported
+
+The linguist must be able to:
+- create asset
+- upload/import asset
+- edit asset
+- delete/archive asset
+- assign asset globally or per client
+- assign asset per job
+- view which clients/jobs use which assets
+
+Important:
+Client-specific asset mapping is required.
+
+==================================================
+11. WORKSPACE LOGIC
+==================================================
+
+Linguist Studio should behave as the linguist’s own internal workspace inside the Linguist Portal.
+
+This means:
+- each linguist has their own studio workspace
+- their clients are private to them
+- their jobs are private to them unless explicit collaboration is later added
+- their assets are private to them unless explicit sharing is later added
+
+Do not mix customer portal data with linguist studio data.
+
+There should be clear data separation between:
+- Customer Portal workspaces
+- Linguist Portal assigned platform tasks
+- Linguist Studio self-managed jobs
+
+==================================================
+12. DIFFERENCE FROM NORMAL LINGUIST PORTAL TASKS
+==================================================
+
+Make a clear separation between:
+A. tasks assigned by platform customers/agencies to the linguist
+B. jobs created by the linguist inside Linguist Studio for their own clients
+
+These are different workflows and should not be mixed.
+
+For example:
+- Assigned Tasks = external work sent to linguist through the platform
+- Studio Jobs = self-managed jobs created by linguist for their own clients
+
+Both can use the editor, but they must remain separate modules with separate logic.
+
+==================================================
+13. BILLING / SUBSCRIPTION ACCESS LOGIC
+==================================================
+
+Build real subscription access logic for Linguist Studio.
+
+Requirements:
+- linguist can subscribe to Linguist Studio for $20/month
+- subscription status is stored and enforced
+- access control checks subscription status
+- non-subscribers see locked module experience
+- subscribers unlock full module
+- canceled/expired subscribers lose active access and return to locked mode
+- existing data should remain stored even if subscription expires, but active editing/management access should be restricted as designed
+
+If billing infrastructure exists, connect to it.
+If not, build the module so subscription gating is real and ready for billing integration.
+
+==================================================
+14. PERMISSIONS / ACCESS
+==================================================
+
+Linguist Studio must only be accessible to eligible linguist users.
+
+Permissions should ensure:
+- only linguist users can see the module
+- only subscribed linguists can access full studio functionality
+- linguist sees only their own studio workspace
+- linguist sees only their own clients
+- linguist sees only their own studio jobs
+- linguist sees only their own assets
+- no leakage into customer workspaces
+- no leakage between linguists
+
+==================================================
+15. DATABASE / DATA MODEL
+==================================================
+
+Create proper backend data models for Linguist Studio, such as:
+
+- LinguistStudioWorkspace
+- LinguistStudioSubscription
+- StudioClient
+- StudioJob
+- StudioJobFile
+- StudioTranslationMemory
+- StudioGlossary
+- StudioStyleGuide
+- StudioActivityLog
+- StudioLLMUsage or equivalent if needed
+
+Suggested relationships:
+- one linguist -> one studio workspace
+- one workspace -> one subscription record or access state
+- one workspace -> many clients
+- one client -> many jobs
+- one workspace -> many assets
+- one job -> many files
+- one job -> linked glossary/TM/style guide
+- one job -> translation method (AI draft + human revision OR fully human)
+- one client -> optional default assets
+
+
+==================================================
+17. AUDIT / SYSTEM LOGGING
+==================================================
+
+If audit logging exists, log:
+- subscription activated
+- subscription expired/canceled
+- client created
+- job created
+- translation method selected
+- AI draft requested/generated
+- asset linked
+- file uploaded
+- editor opened
+- delivery completed
+
+==================================================
+18. REAL IMPLEMENTATION RULE
+==================================================
+
+Do not build this as UI only.
+
+This must include:
+- real backend models
+- real CRUD operations
+- real subscription gating
+- real file upload handling
+- real asset linking
+- real job persistence
+- real editor launch/open behavior
+- real AI draft behavior if selected
+- real permissions
+- real filtering and search
+- real status updates
+
+Do not create fake pages or empty placeholders.
+
+==================================================
+19. TESTING REQUIREMENT
+==================================================
+
+Do not test only UI.
+
+Create and run tests for:
+- linguist studio visibility for subscriber vs non-subscriber
+- locked-state behavior
+- promo page rendering
+- subscription gating
+- client creation/edit/archive
+- job creation/edit/status update
+- job translation method selection
+- file upload
+- asset creation/import/linking
+- client-specific default asset linking
+- job-specific asset linking
+- AI draft generation flow
+- fully human flow
+- opening job file in translation editor
+- saving editor progress
+- separation between assigned tasks and studio jobs
+- data isolation between linguists
+- no leakage into customer portal data
+- error handling
+- invalid input handling
+- permission restrictions
+
+Create:
+- unit tests
+- integration tests
+- end-to-end tests
+- permission tests
+- regression tests for bugs fixed
+
+==================================================
+20. DEEP AUDIT REPORT
+==================================================
+
+After implementation, generate a structured audit report covering:
+
+1. Executive Summary
+- feature health score
+- readiness assessment
+- summary judgment
+
+2. Navigation Audit
+- Linguist Studio appears in sidebar
+- sub-navigation works
+- locked-state behavior works
+- responsive behavior works
+
+3. Subscription Audit
+- $20/month subscription logic
+- active/inactive enforcement
+- non-subscriber locked experience
+- subscriber full access
+- expired/canceled behavior
+
+4. Data Model Audit
+- workspace model
+- subscription model
+- client model
+- job model
+- file model
+- asset model
+- relationships
+
+5. Workflow Audit
+- create client
+- create job
+- select translation method
+- upload file
+- attach assets
+- open editor
+- AI draft load
+- fully human flow
+- save progress
+- mark status
+- deliver/archive
+
+6. Permissions Audit
+- studio visibility
+- subscriber gating
+- client/job privacy
+- linguist isolation
+- separation from customer portal
+
+7. Editor Integration Audit
+- file opens correctly
+- AI draft loads correctly when selected
+- human-only flow works correctly
+- assets load correctly
+- save/update flow works
+- status changes work
+
+8. Fake / Incomplete Functionality Report
+List any:
+- dead buttons
+- non-persistent forms
+- fake subscription gating
+- fake editor launch
+- fake AI draft action
+- asset links not affecting runtime
+- UI-only statuses
+- missing backend logic
+
+9. Test Inventory
+- tests created
+- tests run
+- pass/fail counts
+- regression tests added
+
+10. Remaining Risks
+- issue
+- severity
+- impact
+- recommendation
+
+11. Final Verdict
+Choose one:
+- READY FOR RELEASE
+- READY WITH CAUTIONS
+- NOT READY
+
+Explain why.
+
+==================================================
+21. QUALITY RULES
+==================================================
+
+Do not duplicate the customer portal blindly.
+Do not make this a fake premium module.
+Do not create static mock pages.
+Do not test only layout.
+Verify real backend, real persistence, real subscription logic, real permissions, real editor integration, real AI draft behavior, and real workflow behavior.
+
+==================================================
+22. FINAL DELIVERABLE
+==================================================
+
+Deliver:
+- Linguist Studio in left sidebar
+- locked experience for non-subscribers
+- upgrade/promo page
+- $20/month subscription logic
+- overview dashboard
+- client management
+- job management
+- AI draft + human revision workflow
+- fully human translation workflow
+- LLM-backed draft support
+- asset management
+- TM / glossary / style guide support
+- file upload
+- translation editor launch from studio job
+- real backend models
+- permissions and data isolation
+- tests
+- deep audit report proving real operational behavior
+

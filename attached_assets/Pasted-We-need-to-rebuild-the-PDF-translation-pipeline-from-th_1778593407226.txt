@@ -1,0 +1,161 @@
+We need to rebuild the PDF translation pipeline from the ground up to match the architecture used by professional localization platforms (SDL Trados, memoQ, Phrase). The current stack — PyMuPDF for extraction, segment-by-segment AI translation, pdfkit fallback delivery — has fundamental fidelity and quality problems. Replace it entirely with the following architecture, implemented in sequence.
+
+PHASE 1 — Replace PyMuPDF with pdfminer.six for Native PDF Extraction
+PyMuPDF reads block-level approximations. pdfminer.six gives us character-level geometry from the actual PDF content stream — exact coordinates, precise font metrics, and correct reading order. This is the extraction layer used by enterprise localization tools.
+Create /services/pdf-processor/ as a standalone Python microservice (Flask + gunicorn, Dockerized with python:3.11-slim). This service owns all PDF processing. The main Next.js app never touches a PDF directly again.
+Implement the following endpoints:
+POST /extract
+
+Accepts: multipart file (PDF binary)
+Uses pdfminer.six to extract every character with its bounding box, font name, font size, font color, text direction, and page number
+Groups characters into lines, lines into paragraphs, using spatial clustering (lines within 1.5× line-height = same paragraph; same x-origin ± 5px = same column)
+Detects reading order correctly for multi-column layouts by sorting text blocks left-to-right then top-to-bottom within each column band
+Detects tables using pdfplumber (run in parallel on the same file) — each cell is a separate block with blockType: "table-cell" and tableId, row, col metadata
+Detects RTL blocks: if any character in a block has Unicode Bidi category R or AL, set "direction": "rtl" on that block
+Returns a structured JSON:
+
+json{
+  "pageCount": 4,
+  "blocks": [
+    {
+      "blockId": "b_0_001",
+      "page": 0,
+      "blockType": "paragraph|heading|table-cell|caption|header|footer",
+      "text": "Original source text here",
+      "direction": "ltr",
+      "bbox": { "x": 72.0, "y": 120.5, "width": 468.0, "height": 18.2 },
+      "fontFamily": "Helvetica-Bold",
+      "fontSize": 14.0,
+      "fontWeight": "bold",
+      "fontColor": "#1A1A2E",
+      "alignment": "left|center|right|justify",
+      "lineHeight": 1.4,
+      "columnIndex": 0,
+      "readingOrder": 3
+    }
+  ],
+  "nonTextElements": [
+    {
+      "type": "image|vector|watermark",
+      "page": 0,
+      "bbox": { "x": 0, "y": 0, "width": 612, "height": 200 }
+    }
+  ]
+}
+POST /extract-scanned
+
+Accepts: multipart file (scanned/image PDF)
+Runs ocrmypdf + Tesseract at 300 DPI for confidence gating (existing logic — keep this)
+If confidence ≥ 0.95, passes the OCR'd PDF through to the /extract pipeline above
+If confidence < 0.95, returns { "needsVerification": true, "ocrConfidence": 0.87 } to trigger the existing OCR Requests queue
+
+POST /apply-overlay
+
+Accepts: multipart file (original PDF) + translations JSON array of { blockId, translatedText, bbox, page, fontFamily, fontSize, fontColor, alignment, direction }
+For each block: uses PyMuPDF (fitz) to redact the original bounding box (paint over with background color sampled from the bbox region, not white) then insert the translated text at exact coordinates with exact font metadata
+For RTL blocks: uses arabic-reshaper + python-bidi for correct Arabic shaping; sets insertion to right-edge of bbox; text_align = fitz.TEXT_ALIGN_RIGHT
+All non-text elements (images, vectors, watermarks) are untouched — they are never redacted
+Returns the modified PDF binary
+
+POST /render-html-to-pdf
+
+Accepts: { html: string }
+Renders to PDF via Puppeteer (Chromium installed in the Docker image via apt)
+Returns PDF binary
+This replaces the main app's Puppeteer and pdfkit fallback entirely
+
+requirements.txt: flask, gunicorn, pdfminer.six, pdfplumber, pymupdf, ocrmypdf, arabic-reshaper, python-bidi, pillow
+Dockerfile: python:3.11-slim, install libstdc++6 chromium tesseract-ocr via apt, install requirements, expose 8000.
+In the main Next.js app, create lib/pdf-processor-client.ts:
+
+extractPdf(buffer: Buffer): Promise<PdfExtractResult> → POST to /extract
+extractScannedPdf(buffer: Buffer): Promise<PdfExtractResult | { needsVerification: true, ocrConfidence: number }> → POST to /extract-scanned
+applyOverlay(buffer: Buffer, translations: OverlayBlock[]): Promise<Buffer> → POST to /apply-overlay
+renderHtmlToPdf(html: string): Promise<Buffer> → POST to /render-html-to-pdf
+All functions read PDF_PROCESSOR_SERVICE_URL from env. All throw a typed PdfServiceError on failure with the raw service error attached.
+
+Update the upload analyzer (POST /api/upload/analyze) to call extractPdf() or extractScannedPdf() instead of spawning scripts/extract_pdf.py. Map the returned blocks directly to Segments, populating all font metadata columns (add a Prisma migration: fontFamily, fontSize, fontWeight, fontColor, textAlignment, lineHeight, bboxJson, blockType, direction, columnIndex, readingOrder, tableId, tableRow, tableCol — all nullable on the Segment model).
+
+PHASE 2 — Replace Segment-by-Segment AI Translation with Paragraph Context Windows
+The current approach translates each segment in isolation. This causes inconsistent register, broken terminology continuity, and wrong translations for sentences whose meaning depends on adjacent text. Professional TMS tools send context windows, not isolated strings.
+Update lib/ai-translate.ts with the following batching logic:
+Instead of sending segments one-by-one or in simple batches, group segments into context windows of 5 segments, sliding by 1:
+Window 1: [seg1, seg2, seg3, seg4, seg5]  → translate seg3 (middle = anchor)
+Window 2: [seg2, seg3, seg4, seg5, seg6]  → translate seg4
+...
+For each window, build the prompt as follows:
+You are a professional translator. Translate ONLY the segment marked [TARGET].
+Use the surrounding segments as context for register, terminology, and continuity.
+Do NOT translate the context segments — they are reference only.
+
+[CONTEXT] {seg1.text}
+[CONTEXT] {seg2.text}
+[TARGET]  {seg3.text}
+[CONTEXT] {seg4.text}
+[CONTEXT] {seg5.text}
+
+Source language: {sourceLang}
+Target language: {targetLang}
+{glossaryBlock}
+{styleGuideBlock}
+{tmMatchBlock}
+
+Return ONLY the translation of the [TARGET] segment. No explanation. No preamble.
+Rules for edge cases:
+
+First two segments: pad left with [CONTEXT-EMPTY] placeholders
+Last two segments: pad right with [CONTEXT-EMPTY] placeholders
+Table cells: context window is restricted to cells in the same table (do not mix table cells with body paragraph context)
+Segments with blockType: "header" or "footer" are translated independently (no context window — they are structural, not narrative)
+DNT (Do Not Translate) glossary terms: lock these segments entirely, skip the API call, copy source text as translation
+
+Parallelism: Windows for the same document can be processed in parallel up to the existing concurrency limit. Because each window is independent (anchor segments don't overlap), there are no race conditions.
+Update the segment storage layer to write the translation result back to the same Segment record it was anchored to. The context segments in the window are read-only during that call.
+
+PHASE 3 — Upgrade Delivery to Use the Overlay Service
+Update app/api/jobs/[id]/deliver/route.ts:
+For format=layout:
+
+Fetch all translated segments for the job, ordered by readingOrder
+Build the translations payload from segment fields (bboxJson, translatedText, fontFamily, fontSize, fontColor, textAlignment, direction)
+Call applyOverlay(originalPdfBuffer, translations) from lib/pdf-processor-client.ts
+Stream the returned PDF binary to the client
+Log a warning and surface an error to the client (do not silently fall back) if the service fails
+
+For format=pdf:
+
+Build the layout HTML from segments (existing layoutHtml logic)
+Call renderHtmlToPdf(html) from the client
+Return the PDF
+
+For format=docx:
+
+No change — the existing docx library path works correctly
+
+Remove entirely: scripts/apply_ocr_translations.py, the PyMuPDF spawn in Node.js, all Puppeteer spawn logic in the main app, and lib/pdf-simple.ts (pdfkit fallback). pdfkit should no longer exist anywhere in the delivery path. If the microservice is down, return an HTTP 503 with a clear error message — do not silently degrade to an inferior output.
+
+PHASE 4 — Non-Text Element Preservation
+The overlay approach already preserves non-text elements by only redacting text bounding boxes. But verify this explicitly:
+In app.py's /apply-overlay endpoint:
+
+Before any redaction, rasterize each page to a reference image at 150 DPI
+After all translations are applied, rasterize again at 150 DPI
+For each page, compute the pixel diff restricted to the nonTextElements bounding boxes returned by /extract
+If any non-text bbox has > 1% pixel change, log a warning with the blockId and page number — this catches accidental redaction of images or watermarks
+
+This is a safety check only — it does not block delivery, but the warnings should surface in the job's internal log.
+
+Testing Checklist — all must pass before this is done
+
+Native PDF with custom brand fonts → format=layout → fonts, colors, spacing identical to source; text is translated
+Multi-column PDF → extract → blocks are in correct reading order (left column fully before right column)
+Table PDF → extract → each cell is a separate segment with correct tableId/row/col; delivery reassembles table in correct grid
+Scanned PDF (confidence ≥ 0.95) → full pipeline runs normally
+Scanned PDF (confidence < 0.95) → routed to OCR Requests queue, no crash
+Arabic source PDF → format=layout → Arabic text is right-aligned, correctly shaped, no reversed characters
+Translation of a 20-segment document → inspect AI call logs → each segment was sent with 2 context segments on each side (except first/last two)
+DNT glossary term in a segment → that segment's source text is copied verbatim, no API call made for it
+Microservice is down → deliver request returns HTTP 503 with error message; no pdfkit output; no silent fallback
+Image-heavy PDF → format=layout → all images appear in output at original positions; pixel diff check shows 0% change in non-text regions
+
+Do not modify the TM/glossary data models, the CAT editor, the linguist assignment system, the credit ledger, or any CMS integration. Scope is strictly: extraction, segment model font fields, AI translation batching, and delivery output generation.

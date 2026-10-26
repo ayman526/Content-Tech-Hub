@@ -1,0 +1,74 @@
+modules = ["nodejs-20", "web", "python-3.11", "python3", "postgresql-16"]
+run = "bash start.sh"
+hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["chromium", "fontconfig", "freetype", "ghostscript", "glib", "gumbo", "harfbuzz", "jbig2dec", "jbig2enc", "lcms2", "libimagequant", "libjpeg", "libjpeg_turbo", "libtiff", "libwebp", "libxcrypt", "mupdf", "openjpeg", "pango", "pngquant", "swig", "tcl", "tesseract", "tk", "unpaper", "xcbuild", "zlib"]
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 5432
+externalPort = 3003
+exposeLocalhost = true
+
+[[ports]]
+localPort = 5904
+externalPort = 3002
+
+[[ports]]
+localPort = 8001
+externalPort = 3001
+
+[env]
+PORT = "5000"
+
+[deployment]
+deploymentTarget = "vm"
+run = ["bash", "scripts/start-prod.sh"]
+build = ["bash", "scripts/build-prod.sh"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start.sh"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[userenv]
+
+[userenv.shared]
+AUTH_SECRET = "7ab59a99e0ba31a4fc9bbb19a99bc40bdcb97b5b45db04c0136f99d2079346ee"
+NEXTAUTH_URL = "http://localhost:5000"
+NEXT_PUBLIC_GOOGLE_CLIENT_ID = "265895322062-b0fba106daggfr578r1bm1tocg5sdnk4.apps.googleusercontent.com"
+
+[agent]
+integrations = ["javascript_openai_ai_integrations:2.0.0", "github:1.0.0"]
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000

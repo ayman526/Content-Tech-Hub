@@ -1,0 +1,332 @@
+We did a full audit of the PDF pipeline implementation against the original architecture spec. There are 5 issues that need to be fixed or verified before this is production-ready. Work through them in order, then run the full verification suite and produce a report.
+
+FIX 1 — Remove all PyMuPDF and PDF processing from the Node.js layer entirely
+The upload/analyze route still retains legacy PyMuPDF spawn logic described as "scanned-detection fallback." This must be deleted. The libstdc++ production crash that the entire microservice migration was built to solve is still possible on the upload path as long as any PyMuPDF spawn exists in Node.js.
+The rule is absolute: Node.js never touches a PDF binary directly. Scanned PDF detection happens exclusively inside the /extract-scanned microservice endpoint — it already runs ocrmypdf + Tesseract and returns { needsVerification: true } when confidence is low.
+Do the following:
+
+Delete every python scripts/extract_pdf.py spawn call from the Node.js codebase
+Delete scripts/extract_pdf.py itself
+In the upload/analyze route, the only PDF-related calls allowed are extractPdf() and extractScannedPdf() from lib/pdf-processor-client.ts
+Confirm there are zero remaining child_process.spawn, exec, or execFile calls referencing any Python PDF script in the entire Node.js codebase
+
+
+FIX 2 — Delete pdfkit and the legacy Puppeteer fallback from the delivery path permanently
+The format=pdf delivery path still falls back to legacy Puppeteer → pdfkit → DOCX chain for non-service failures. This must be removed completely. The entire point of the microservice migration was to eliminate silent degradation to layout-broken output. Clients should never receive a pdfkit PDF without knowing it.
+Do the following:
+
+Delete lib/pdf-simple.ts entirely
+Remove every import of pdfkit from the codebase and uninstall the package from package.json
+Remove the legacy Puppeteer spawn fallback from lib/pdf-pipeline.ts
+In the deliver route, when renderHtmlToPdf() fails or the microservice is unreachable, return HTTP 503 with body { "error": "PDF renderer unavailable", "serviceUrl": "<PDF_PROCESSOR_SERVICE_URL env value>" } — no silent fallback, no alternative format, no degraded output
+Same rule applies to format=layout: if applyOverlay() fails, return 503, do not fall back to any local rendering path
+After these deletions, confirm pdfkit appears nowhere in the codebase with a grep
+
+
+FIX 3 — Verify and fix the context window to be a true sliding window, not chunking
+The current implementation is described as a ±2 segment context window. This could be implemented as either a sliding window (correct) or non-overlapping chunks of 5 (wrong). These look similar but produce very different translation quality. Segments at chunk boundaries get no context on one side with chunking, which is exactly the problem we were solving.
+Verify this now by answering: for a 10-segment document, which context segments does segment #5 receive when the AI call is made for it?
+The correct answer is: [seg3, seg4] before and [seg6, seg7] after — meaning a fresh window is built for every single anchor segment, and the anchor increments by 1 each iteration.
+If the current implementation groups segments into non-overlapping batches of 5 instead, fix lib/ai-translate.ts as follows:
+for anchorIndex from 0 to segments.length - 1:
+  contextBefore = segments[max(0, anchorIndex - 2) : anchorIndex]
+  contextAfter  = segments[anchorIndex + 1 : min(length, anchorIndex + 3)]
+  anchor        = segments[anchorIndex]
+  → build prompt with [CONTEXT] tags for before/after, [TARGET] tag for anchor
+  → make single LLM call
+  → write result back to anchor segment only
+Edge cases that must be correct:
+
+Segment 0: 0 context segments before, 2 after — pad with [CONTEXT-EMPTY] on left
+Segment 1: 1 context segment before, 2 after
+Second-to-last segment: 2 before, 1 after
+Last segment: 2 before, 0 after — pad with [CONTEXT-EMPTY] on right
+Table cells: context window restricted to cells with the same tableId — never mix table cells with body paragraph context
+blockType = "header" or "footer": translated independently with no context window at all
+DNT glossary exact match: source text copied verbatim as translation, no LLM call, no context window built
+
+Show the loop structure in the updated code after the fix.
+
+FIX 4 — Fix bounding box redaction to sample background color, not use hardcoded white
+In services/pdf-processor/app.py, in the /apply-overlay endpoint, show exactly how bounding box redaction is performed before the translated text is inserted.
+If the current implementation paints the bbox with a hardcoded color (white (1,1,1), black, or any fixed value), fix it immediately. Hardcoded white leaves visible white rectangles on colored backgrounds, dark-themed PDFs, or any document with a non-white page background — a visually obvious defect on any branded document.
+Fix it as follows:
+
+Before redacting a bbox, rasterize a 10px border region around the bbox on that page using PyMuPDF's get_pixmap() with a clip rect slightly larger than the bbox
+Compute the median RGB value of the pixels in that border strip
+Use that median color as the fill color for the redaction rectangle
+Then insert the translated text on top at the exact bbox coordinates
+
+If the bbox is on a white page (median RGB ≥ 245, 245, 245), white fill is fine — the sampling result will confirm it. The fix only matters for non-white backgrounds.
+
+FIX 5 — Verify multi-column reading order uses column band detection, not global y-sort
+In services/pdf-processor/app.py, in the /extract endpoint, show the reading order assignment logic.
+A naive global y-coordinate sort on a two-column PDF will interleave left and right column text — for example, the first line of column 2 will appear in reading order between the first and second lines of column 1. This produces completely wrong segment ordering, which breaks both the context window logic and the final document assembly.
+The correct behavior: for a two-column document, all left-column blocks must appear before all right-column blocks in readingOrder.
+Verify by describing what readingOrder values would be assigned to a page with 4 blocks: left-column blocks at x=72 and x=72 (y=100 and y=200), right-column blocks at x=320 and x=320 (y=100 and y=200). The correct answer is readingOrder 0, 1, 2, 3 assigned as: left-col y=100, left-col y=200, right-col y=100, right-col y=200.
+If the current implementation does a global y-sort (which would give: left y=100, right y=100, left y=200, right y=200), fix it as follows:
+
+After extracting all blocks for a page, compute the page's median x-coordinate of all block left edges
+Cluster blocks into columns: blocks whose left edge is within 30% of page width of each other belong to the same column
+Sort columns left to right by their median x-position
+Within each column, sort blocks top to bottom by their bbox.y
+Assign readingOrder sequentially across columns: all blocks in column 1 first, then all blocks in column 2, etc.
+For pages with 3+ columns, the same rule applies — sort columns by x, assign readingOrder column-by-column
+
+
+VERIFICATION SUITE — Run after all 5 fixes are applied and produce a full report
+After completing every fix above, run the following verification suite end to end. For each test, execute it, capture the actual result, and include it in the report. Do not mark any test as passed based on code inspection alone — every test must actually run.
+
+TEST 1 — Dead code elimination (no PDF processing in Node.js)
+Run:
+bashgrep -rn "extract_pdf.py\|pdf-simple\|pdfkit\|child_process.*python\|execFile.*py\|spawn.*python" \
+  --include="*.ts" --include="*.js" \
+  lib/ app/ pages/ server/ 2>/dev/null
+Expected result: zero lines of output.
+Report: paste the exact grep output. If any lines appear, list each file and line number and mark this test FAILED.
+
+TEST 2 — Microservice health check
+Run:
+bashcurl -s http://localhost:8001/health
+Expected result: HTTP 200 with { "status": "ok" } or similar.
+Then verify all 4 endpoints are registered:
+bashcurl -s -X POST http://localhost:8001/extract \
+  -F "file=@/dev/null" 2>&1 | head -5
+
+curl -s -X POST http://localhost:8001/extract-scanned \
+  -F "file=@/dev/null" 2>&1 | head -5
+
+curl -s -X POST http://localhost:8001/apply-overlay \
+  -F "file=@/dev/null" -F 'translations=[]' 2>&1 | head -5
+
+curl -s -X POST http://localhost:8001/render-html-to-pdf \
+  -H "Content-Type: application/json" \
+  -d '{"html":"<h1>Test</h1>"}' -o /tmp/test-render.pdf && \
+  file /tmp/test-render.pdf
+Expected result for render: /tmp/test-render.pdf: PDF document.
+Report: paste every response. Mark FAILED if any endpoint returns 404 or connection refused.
+
+TEST 3 — pdfminer.six extraction produces correct structured output
+Create a simple test PDF programmatically and run it through /extract:
+bashpython3 - <<'EOF'
+import fitz, json, requests, io
+
+# Create a simple 2-column test PDF
+doc = fitz.open()
+page = doc.new_page()
+page.insert_text((72, 100), "Left column line 1", fontsize=12)
+page.insert_text((72, 120), "Left column line 2", fontsize=12)
+page.insert_text((320, 100), "Right column line 1", fontsize=12)
+page.insert_text((320, 120), "Right column line 2", fontsize=12)
+buf = io.BytesIO(doc.tobytes())
+
+r = requests.post("http://localhost:8001/extract", files={"file": ("test.pdf", buf, "application/pdf")})
+data = r.json()
+
+print("Total blocks:", len(data["blocks"]))
+for b in sorted(data["blocks"], key=lambda x: x["readingOrder"]):
+    print(f"  readingOrder={b['readingOrder']} x={b['bbox']['x']:.0f} y={b['bbox']['y']:.0f} text={b['text'][:30]}")
+EOF
+Expected result: 4 blocks in readingOrder 0→3 where the two x=72 blocks appear before the two x=320 blocks.
+Report: paste the full output. If x=320 blocks appear before x=72 blocks at the same y-coordinate, mark TEST 5 (column order) as FAILED.
+
+TEST 4 — Context window sliding behavior
+Add a temporary debug log to lib/ai-translate.ts that, instead of making a real API call, logs the context structure to a file. Then create a job with exactly 10 plaintext segments and trigger AI translation. Inspect the log to verify each segment's window.
+Specifically verify segment index 4 (0-based, the 5th segment):
+
+contextBefore must contain segment indexes 2 and 3
+contextAfter must contain segment indexes 5 and 6
+
+And verify segment index 0:
+
+contextBefore must be empty or contain [CONTEXT-EMPTY] placeholders
+contextAfter must contain segment indexes 1 and 2
+
+Report: paste the logged window structure for segments 0, 4, and 9. If any of these show chunking behavior (e.g., segment 0 getting context from segment 4, or segment 5 having no before-context), mark this test FAILED. Remove the debug log after verification.
+
+TEST 5 — Background color sampling on overlay
+Create a test PDF with a colored background and run it through the overlay:
+bashpython3 - <<'EOF'
+import fitz, json, requests, io
+
+doc = fitz.open()
+page = doc.new_page()
+# Draw a dark blue background
+page.draw_rect(fitz.Rect(0, 0, 612, 792), color=None, fill=(0.1, 0.1, 0.3))
+# Insert white text on top
+page.insert_text((72, 100), "Hello World", fontsize=14, color=(1,1,1))
+buf = io.BytesIO(doc.tobytes())
+
+translations = [{
+    "blockId": "test_001",
+    "page": 0,
+    "translatedText": "Translated Text",
+    "bbox": {"x": 72, "y": 86, "width": 150, "height": 20},
+    "fontFamily": "helv",
+    "fontSize": 14,
+    "fontColor": "#FFFFFF",
+    "alignment": "left",
+    "direction": "ltr"
+}]
+
+r = requests.post(
+    "http://localhost:8001/apply-overlay",
+    files={"file": ("test.pdf", buf, "application/pdf")},
+    data={"translations": json.dumps(translations)}
+)
+
+with open("/tmp/overlay-test.pdf", "wb") as f:
+    f.write(r.content)
+print("Output written to /tmp/overlay-test.pdf — open and verify no white rectangle visible behind translated text")
+
+# Also extract the redaction fill color from the response headers or logs
+print("Response status:", r.status_code)
+EOF
+Open /tmp/overlay-test.pdf and visually inspect it.
+Expected result: the area behind "Translated Text" should be dark blue (matching the background), not white.
+Report: describe what color the redacted area shows. Mark FAILED if a white or off-color rectangle is visible.
+
+TEST 6 — 503 behavior when microservice is down
+Stop the microservice:
+bashpkill -f gunicorn
+sleep 2
+Then attempt a PDF deliver request via the API (use an existing job ID with PDF segments):
+bashcurl -s -o /tmp/503-test-response.json -w "%{http_code}" \
+  "http://localhost:3000/api/jobs/<any_job_id>/deliver?format=layout"
+cat /tmp/503-test-response.json
+Expected result: HTTP status 503 and JSON body containing "error" key. No PDF binary returned. No pdfkit or DejaVu references in the application logs during this request.
+Check logs for any pdfkit activity:
+bashgrep -i "pdfkit\|dejavu\|fallback" /tmp/app.log 2>/dev/null || \
+  journalctl -u yourapp --since "1 minute ago" 2>/dev/null | grep -i "pdfkit\|dejavu\|fallback"
+Expected: zero matches.
+Report: paste the HTTP status code, the response JSON, and the grep output. Mark FAILED if status is not 503 or if pdfkit appears in logs. Restart the microservice after this test: ./start.sh
+
+TEST 7 — Arabic RTL text renders correctly
+bashpython3 - <<'EOF'
+import fitz, json, requests, io
+
+doc = fitz.open()
+page = doc.new_page()
+page.insert_text((72, 100), "This is English source text", fontsize=12)
+buf = io.BytesIO(doc.tobytes())
+
+translations = [{
+    "blockId": "rtl_001",
+    "page": 0,
+    "translatedText": "هذا نص عربي مترجم",
+    "bbox": {"x": 72, "y": 86, "width": 468, "height": 20},
+    "fontFamily": "helv",
+    "fontSize": 12,
+    "fontColor": "#000000",
+    "alignment": "right",
+    "direction": "rtl"
+}]
+
+r = requests.post(
+    "http://localhost:8001/apply-overlay",
+    files={"file": ("test.pdf", buf, "application/pdf")},
+    data={"translations": json.dumps(translations)}
+)
+with open("/tmp/arabic-test.pdf", "wb") as f:
+    f.write(r.content)
+print("Status:", r.status_code)
+print("Output: /tmp/arabic-test.pdf — verify Arabic text is right-aligned and characters are correctly shaped")
+EOF
+Open /tmp/arabic-test.pdf and inspect.
+Expected result: Arabic text is right-aligned within the bbox, characters are correctly connected (not reversed or broken apart), no garbled Unicode.
+Report: describe the visual result. Mark FAILED if text appears left-aligned, reversed, or as disconnected character shapes.
+
+TEST 8 — Non-text elements are preserved through overlay
+bashpython3 - <<'EOF'
+import fitz, json, requests, io
+
+doc = fitz.open()
+page = doc.new_page()
+# Draw a red rectangle to simulate a logo/image area
+page.draw_rect(fitz.Rect(400, 50, 550, 150), color=None, fill=(0.8, 0.1, 0.1))
+page.insert_text((72, 200), "Document body text here", fontsize=12)
+buf = io.BytesIO(doc.tobytes())
+
+translations = [{
+    "blockId": "body_001",
+    "page": 0,
+    "translatedText": "Translated body text here",
+    "bbox": {"x": 72, "y": 186, "width": 300, "height": 20},
+    "fontFamily": "helv",
+    "fontSize": 12,
+    "fontColor": "#000000",
+    "alignment": "left",
+    "direction": "ltr"
+}]
+
+r = requests.post(
+    "http://localhost:8001/apply-overlay",
+    files={"file": ("test.pdf", buf, "application/pdf")},
+    data={"translations": json.dumps(translations)}
+)
+with open("/tmp/preservation-test.pdf", "wb") as f:
+    f.write(r.content)
+print("Status:", r.status_code)
+print("Output: /tmp/preservation-test.pdf — verify red rectangle is still present and untouched")
+EOF
+Expected result: the red rectangle (simulating a logo) is completely intact in the output PDF.
+Report: confirm the rectangle is present and unchanged. Mark FAILED if it has been altered, overwritten, or partially erased. Also paste any pixel diff warnings that appeared in the microservice logs during this request.
+
+Report Format
+After running all 8 tests, produce a report in exactly this format:
+PDF PIPELINE VERIFICATION REPORT
+=================================
+Date: [timestamp]
+Environment: [Replit / local dev / production]
+
+FIX STATUS
+----------
+Fix 1 (PyMuPDF removed from Node.js):     APPLIED / NOT APPLIED
+Fix 2 (pdfkit deleted):                   APPLIED / NOT APPLIED
+Fix 3 (sliding context window):           APPLIED / NOT APPLIED
+Fix 4 (background color sampling):        APPLIED / NOT APPLIED
+Fix 5 (column band reading order):        APPLIED / NOT APPLIED
+
+TEST RESULTS
+------------
+Test 1 - Dead code elimination:           PASS / FAIL
+  grep output: [paste exact output or "no output — clean"]
+
+Test 2 - Microservice health + endpoints: PASS / FAIL
+  /health response: [paste]
+  /render-html-to-pdf: [paste file type result]
+
+Test 3 - pdfminer.six column ordering:    PASS / FAIL
+  readingOrder output: [paste block list]
+
+Test 4 - Sliding context window:          PASS / FAIL
+  Segment 0 window:  before=[] after=[1,2]
+  Segment 4 window:  before=[2,3] after=[5,6]
+  Segment 9 window:  before=[7,8] after=[]
+
+Test 5 - Background color sampling:       PASS / FAIL
+  Redacted area color: [describe]
+
+Test 6 - 503 on service down:             PASS / FAIL
+  HTTP status: [code]
+  Response body: [paste JSON]
+  pdfkit in logs: [yes/no]
+
+Test 7 - Arabic RTL rendering:            PASS / FAIL
+  Visual result: [describe]
+
+Test 8 - Non-text preservation:           PASS / FAIL
+  Red rectangle present: [yes/no]
+  Pixel diff warnings: [paste or "none"]
+
+OVERALL STATUS
+--------------
+Tests passed:  X / 8
+Tests failed:  X / 8
+
+FAILED TESTS — ACTION REQUIRED
+-------------------------------
+[List each failed test with the specific line or function that needs fixing]
+
+OVERALL PIPELINE STATUS: PRODUCTION READY / NOT READY
+Do not mark OVERALL STATUS as PRODUCTION READY unless all 8 tests pass and all 5 fixes show APPLIED. If any test fails, list the exact file, function, and line number that needs to change.

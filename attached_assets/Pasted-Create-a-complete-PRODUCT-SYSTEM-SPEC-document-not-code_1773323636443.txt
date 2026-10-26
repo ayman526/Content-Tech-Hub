@@ -1,0 +1,139 @@
+Create a complete PRODUCT + SYSTEM SPEC document (not code) that describes the platform end-to-end.
+
+OUTPUT FORMAT
+Produce a structured, detailed spec in Markdown with:
+1) Business Overview
+2) User Roles & Permissions
+3) Features by Role (Admin, Customer, Linguist)
+4) Core Workflows (step-by-step)
+5) Data/Entities (high-level)
+6) Integrations & Extensibility
+7) Industries & Use Cases
+8) KPIs & Reporting
+9) Security/Privacy/Compliance
+10) Future Enhancements (strategic roadmap)
+
+BUSINESS OVERVIEW (must include)
+- Describe the platform: AI first draft + human linguist review/translation in one workflow.
+- Explain the credit system and plans:
+  - Free: BYOK + 100 monthly credits, max 5 docs/month, 1 TM, 100 glossary terms.
+  - Professional: $49/month, 1000 monthly credits, unlimited docs/TMs/glossary.
+  - Credit conversions:
+    - AI translate: 1 credit = 5 words (ceil(words/5))
+    - Human revision: 1 credit = 2 words (ceil(words/2))
+    - Human translation: 2 credits = 1 word (words*2)
+  - Internal linguists rule:
+    - If job uses INTERNAL linguists and workflow is HUMAN_REVISION or HUMAN_TRANSLATION, human credits charged = 0.
+- Explain linguist sourcing options:
+  - System pool linguists
+  - Preferred linguists
+  - Internal linguists (client invited via email)
+
+USER ROLES (must include)
+Define permissions and feature access for:
+1) Admin (platform owner/operator)
+2) Customer (client organization users: Owner/Admin/Member if needed)
+3) Linguist (system pool + preferred + internal)
+
+FEATURES BY ROLE (must be detailed)
+ADMIN FEATURES
+- Org management (create/disable orgs, view usage)
+- Plans & pricing management (sync with Stripe; pricing updates must propagate across site pages and checkout)
+- Credit rules configuration + limits configuration
+- User & role management (admin/customer/linguist)
+- System linguist pool management:
+  - onboard linguists, verify profiles, language pairs, availability
+  - performance metrics (quality scores, turnaround, rejection rate)
+- Content management (CMS-like site content editor for homepage/pricing/contact; no hardcoded content)
+- Job monitoring (global queue, SLA, escalations)
+- Financial reporting (revenue, credits consumed, margin proxy)
+- Security & audit logs
+- Integration management (e.g., Contentful connector settings templates)
+
+CUSTOMER FEATURES (Client Dashboard)
+- Create projects/jobs: upload docs or connect via integrations (e.g., Contentful)
+- Choose workflow: AI only / AI+Human review / Human translation
+- Choose linguist source: System pool / Preferred / Internal
+- TM + glossary management (limits apply to Free)
+- Credits dashboard: balance, burn, estimates, ledger
+- Project details page: progress per stage (AI vs Human), deliverables, timeline, downloads
+- Quality reporting: error types + severity, issue list, export report
+- Linguists tab:
+  - invite internal linguists by email
+  - assign language pairs
+  - invitation acceptance flow to join org
+  - filters: internal vs preferred vs system, filter by language pairs, search
+  - manage preferred linguists (add/remove from system pool)
+- Collaboration: comments, notifications, approvals (optional but describe)
+- Billing:
+  - subscription management via Stripe
+  - invoice history
+  - upgrade/downgrade plan rules
+  - BYOK settings (Free requires BYOK; Professional optional)
+
+LINGUIST FEATURES (Linguist Workspace)
+- Sign up/login via invitation (internal) or platform onboarding (system)
+- View assigned jobs/tasks by language pair
+- Editor: source/target split view, TM/glossary suggestions
+- Review actions:
+  - classify issues by error type + severity (Low/Medium/Critical)
+  - propose corrected target text
+  - add comments/queries
+- Workflow modes:
+  - Human revision (post-edit AI)
+  - Human translation (from scratch)
+- Submit for approval / mark complete
+- Personal stats: throughput, quality score, earnings (if applicable)
+- Notifications: assignment, due dates, feedback
+
+CORE WORKFLOWS (step-by-step)
+Include detailed flows:
+- Customer creates job → AI draft → linguist assignment → human review → delivery
+- Customer selects internal linguists → confirm “no human credits charged” → submit
+- Invite internal linguist → email link → accept → join org → get assignments
+- Preferred linguist selection from system pool
+- Credit estimation and deduction + ledger entry (idempotent)
+- Plan renewal monthly credit reset
+- Contentful integration: select entries/fields/locales → create jobs → push translations back
+
+DATA/ENTITIES (high-level)
+List main entities and relationships:
+Organization, Users, Roles, Documents, Segments, Jobs, JobLocales, TMs, GlossaryTerms, LinguistProfiles, LanguagePairs, Invitations, CreditLedger, Subscriptions, AuditLogs, Integrations.
+
+INDUSTRIES (must include + explain why)
+Provide a section “Industries that benefit most” with:
+- E-commerce & retail
+- SaaS & tech (UI strings, release notes, docs)
+- Customer support & help centers
+- Marketing & growth teams
+- Legal & compliance-heavy industries (finance, insurance)
+- Healthcare / pharma (with higher human review needs)
+- Media & entertainment (subtitles/scripts)
+- Travel & hospitality
+For each: list typical content types + best workflow (AI only vs AI+review vs human)
+
+KPIs & REPORTING
+Define KPIs per role:
+- Time-to-first-draft, time-to-delivery, edit distance, issue density, critical issue rate
+- Credits per word, cost predictability, savings vs full human
+- Linguist performance metrics
+
+SECURITY/PRIVACY
+- BYOK support, encryption at rest for keys
+- Audit logs, role-based access, org isolation
+- Data retention options
+- Compliance-ready notes (ISO style posture)
+
+FUTURE ENHANCEMENTS
+Include roadmap ideas:
+- Auto-routing by content type & risk level
+- Quality scoring automation
+- Advanced CMS connectors beyond Contentful
+- In-context preview (web page screenshot)
+- SSO/SAML for enterprise
+- Credit top-ups, enterprise contracts, SLAs
+
+IMPORTANT
+- Make the spec detailed enough that a dev team can implement it.
+- Use clear headings, bullets, and user stories.
+- Do NOT write code. Write the system features and business overview only.

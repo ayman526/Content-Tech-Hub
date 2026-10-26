@@ -1,0 +1,108 @@
+Add “Linguists Management” for each client organization with 3 linguist types:
+1) System Pool (platform-managed linguists)
+2) Preferred Linguists (client-approved/favorites from system pool)
+3) Internal Linguists (client’s own staff invited by email)
+
+KEY BUSINESS RULE
+When a client selects INTERNAL LINGUISTS for a job workflow (Human Revision or Human Translation), show a clear message:
+“Since you selected Internal Linguists, there will be no charge for human revision/translation credits for this job.”
+Then enforce it in billing logic:
+- If workflow = HUMAN_REVIEW and linguist_source = INTERNAL => credits_used_for_human = 0
+- If workflow = HUMAN_TRANSLATE and linguist_source = INTERNAL => credits_used_for_human = 0
+- AI translation credits are still consumed normally unless plan rules say otherwise.
+- For SYSTEM_POOL or PREFERRED linguists, human credits follow the standard conversion rules.
+
+DATA MODEL (Prisma)
+Add multi-tenant org structure:
+- Organization (id, name, ownerUserId, createdAt)
+- OrgMember (id, orgId, userId, role: OWNER|ADMIN|CLIENT_USER|LINGUIST, status)
+- LinguistProfile (id, userId, displayName, linguistType: SYSTEM|PREFERRED|INTERNAL, isActive, createdAt)
+- LanguagePair (id, sourceLang, targetLang)
+- LinguistLanguagePair (id, linguistProfileId, languagePairId)
+- Invitation (id, orgId, email, role, token, expiresAt, acceptedAt, createdAt, invitedByUserId)
+- PreferredLinguist (id, orgId, linguistProfileId)  // marks a SYSTEM linguist as preferred for a specific org
+- Job (id, orgId, docId, workflowType, linguistSource: SYSTEM_POOL|PREFERRED|INTERNAL, wordCount, creditsChargedAI, creditsChargedHuman, status, createdAt)
+- CreditLedger (existing) add fields: orgId, jobId, breakdownJSON
+
+LINGUISTS TAB (Client Dashboard)
+Create a new dashboard tab: “Linguists”
+Functions:
+1) Invite internal linguists by email:
+- Client admin enters email + selects role = LINGUIST
+- Client admin selects allowed language pairs for the invited linguist (multi-select)
+- System sends invitation email with secure token link:
+  - Accept invitation => account creation/login
+  - On acceptance, user is added to org as LINGUIST and a LinguistProfile is created with linguistType = INTERNAL
+2) Manage preferred linguists:
+- Client can browse system pool linguists and add/remove them as “Preferred”
+- Preferred linguists remain SYSTEM type globally but appear as PREFERRED inside that org
+3) View system pool linguists (read-only list or limited browsing)
+- Show basic profile info and supported language pairs
+
+FILTERS + SEARCH (required)
+On the Linguists page add:
+- Filter by type: Internal / Preferred / System Pool
+- Filter by language pair (source->target)
+- Search by name or email
+- Optional: status filter (Active/Invited/Inactive)
+
+UI REQUIREMENTS
+Linguists page layout:
+- Header: “Linguists”
+- Primary button: “Invite Linguist”
+- Tabs or segmented control: All | Internal | Preferred | System Pool
+- Filter row: language pair dropdown + search box
+- Table columns:
+  - Name
+  - Email
+  - Type (badge)
+  - Language pairs (chips)
+  - Status (Active / Invited)
+  - Actions:
+    - Internal: edit language pairs, deactivate
+    - System pool: “Add to Preferred”
+    - Preferred: “Remove from Preferred”
+
+INVITATION FLOW
+- Send email via a simple email provider (Resend/SendGrid/etc.)
+- Invitation link format: /invite?token=XYZ
+- Token validation:
+  - must match invitation record, not expired, not accepted
+- Acceptance:
+  - if user exists => prompt login then join org
+  - if not => sign up then join org
+- After acceptance:
+  - mark invitation acceptedAt
+  - create OrgMember role LINGUIST
+  - create LinguistProfile type INTERNAL
+  - attach selected language pairs
+
+JOB ASSIGNMENT LOGIC
+In job creation (submit translation job) add field “Linguist Source”:
+- System Pool
+- Preferred Linguists
+- Internal Linguists
+
+When client chooses Internal Linguists:
+- Display message: “No human credits will be deducted when Internal Linguists are selected.”
+- Enforce billing:
+  - creditsChargedHuman = 0 for HUMAN_REVIEW and HUMAN_TRANSLATE
+  - Keep credit ledger entry that clearly shows:
+    - AI credits deducted (if any)
+    - Human credits deducted = 0 due to internal linguists selection
+
+AUDITABILITY
+- Every credit deduction should store breakdownJSON:
+  { workflowType, wordCount, linguistSource, aiCredits, humanCredits, reasonIfZero }
+
+DELIVERABLES
+- Implement full UI and backend endpoints
+- Prisma migrations
+- Email invitation sending
+- Role-based access:
+  - Only org OWNER/ADMIN can invite/manage linguists
+  - Linguists can only see jobs assigned to their org
+- Update README describing:
+  - Linguist types
+  - Invitation flow
+  - Human credit charging rules with examples

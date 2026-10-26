@@ -1,0 +1,31 @@
+Build an interactive quick tour / onboarding overlay for Contentech, an AI-first multilingual translation SaaS. The tour should guide new users through the platform's core value immediately after signup or first login.
+
+PRODUCT CONTEXT
+Contentech lets clients upload documents, choose a translation workflow (AI Only / AI + Human Revision / Human Translation), and receive translated output — all in one platform. Key user roles are: Client (submits translation jobs), Linguist (reviews/edits translations), and Admin (manages the org). The core "aha moment" for a Client is submitting their first translation job. For a Linguist, it's opening their first assigned job in the CAT editor.
+
+WHAT TO BUILD
+A role-aware, interactive quick tour component that:
+
+Detects user role (Client, Linguist, or Admin) from user session/context and shows a role-specific tour. Do not show the same flow to everyone.
+Limits to 3–5 steps maximum — no feature dumps. Each role gets only the steps that deliver immediate value:
+
+Client tour (4 steps): Welcome → Upload a Document → Choose Workflow → Submit Your First Job
+Linguist tour (3 steps): Welcome → Open Your Job Feed → Enter the CAT Editor
+Admin tour (3 steps): Welcome → Invite a Team Member → Review the Dashboard
+
+
+Makes each step interactive — every step requires or encourages a real action (clicking a button, hovering over a UI element, or performing a task). No static text walls. Use tooltip-style popovers anchored to actual UI elements where possible, with a highlight/spotlight overlay on the target element.
+Always shows a visible skip/close button (top-right "✕ Skip Tour") on every single step. Users who close it should not be re-prompted automatically.
+Persists tour state — track tourCompleted, tourSkipped, and tourStep in localStorage (or user profile if available). Returning users or users who previously skipped should never see the tour again on login unless they explicitly restart it.
+Provides on-demand restart — add a "Replay Tour" or "Help / Getting Started" option in the sidebar or user menu that re-launches the tour from step 1 at any time.
+
+
+TECHNICAL REQUIREMENTS
+
+Framework: React (Next.js, matching the existing stack)
+Styling: Tailwind CSS + shadcn/ui components
+Tour rendering: Build a <QuickTour /> component using a spotlight overlay (semi-transparent dark backdrop with a cutout around the target element) and a floating tooltip card
+Tour tooltip card should contain: step counter (e.g. "Step 2 of 4"), title, a one-sentence description, a primary CTA button ("Next →"), and the skip/close button
+Animate transitions between steps (fade or slide)
+Component should accept a role prop and a steps config array, making it easy to add or edit tours without touching the component logic
+Store tour completion status in localStorage under key contentech_tour_<userId>_<role>
